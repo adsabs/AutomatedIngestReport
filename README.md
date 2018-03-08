@@ -10,5 +10,5 @@ compute what is missing, what is new, what is deleted, etc.
 To gather all the needed data and compute state:
 `python run.py --gather --compute`
 
-##Maintainer
+## Maintainer
 Steve McDonald
