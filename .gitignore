@@ -1,3 +1,12 @@
+# data directory holds cached files of bibcodes and computed files
+data/
+
+logs/
+air/tests/tmp/
+
+#emacs
+*~
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
