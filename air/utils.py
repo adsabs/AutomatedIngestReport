@@ -1,5 +1,7 @@
 
 from datetime import datetime, timedelta
+from os import remove
+from shutil import move
 import subprocess
 
 from adsputils import setup_logging, load_config
@@ -72,3 +74,14 @@ def comm(file_in1, file_in2, file_out):
         logger.error('c command returned {}'.format(c, r))
     lines = lines_in_file(file_out)
     return lines
+
+def sort(filename):
+    """use temp file and unix sort command essentially sort in place"""
+
+    tmp_filename = '{}.tmp'.format(filename)
+    move(filename, tmp_filename)
+    c = 'sort {} > {}'.format(tmp_filename, filename)
+    r = subprocess.call(c, shell=True)
+    if r != 0:
+        logger.error('in sort, c command returned {}'.format(c, r))
+    remove(tmp_filename)

@@ -7,7 +7,7 @@ from datetime import datetime
 import shutil
 
 # from apiclient.discovery import build
-from utils import Filename, FileType, Date, conf, logger
+from utils import Filename, FileType, Date, conf, logger, sort
 
 
 class Gather:
@@ -25,6 +25,7 @@ class Gather:
         air = Filename.get(self.date, FileType.CANONICAL)
         logger.info('making local copy of canonical bibcodes file, from %s to %s', c, air)
         shutil.copy(c, air)
+        sort(air)
 
     def solr(self):
         """use solr batch api to get list of all bibcode it has
@@ -88,5 +89,6 @@ class Gather:
         filename = Filename.get(self.date, FileType.SOLR)
         with open(filename, 'w') as f:
             f.write(bibs)
-
+        sort(filename)
+        
         return True
