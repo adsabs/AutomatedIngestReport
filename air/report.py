@@ -1,6 +1,7 @@
 
-from apiclient.discovery import build
-from oauth2client.file import Storage
+#from apiclient.discovery import build
+#from oauth2client.file import Storage
+from utils import Date
 
 # this code is not yet complete
 
@@ -12,7 +13,7 @@ class Report:
     """
 
     def __init__(self, compute, date=Date.TODAY):
-        service = build('drive', 'v3', developerKey='')
+        #service = build('drive', 'v3', developerKey='')
         self.compute = compute
 
     def _upload_files(self):
@@ -34,13 +35,13 @@ class Report:
 
     def _text(self):
         """return text for report, including links"""
-        t = 'There are new ' + compute.new_canonical + ' canonical bibcodes.  \n' \
-            + compute.deleted_canonical + ' canonical bibcodes were deleted.'
+        t = 'There are new ' + str(self.compute.new_canonical) + ' canonical bibcodes.  \n' \
+            + str(self.compute.deleted_canonical) + ' canonical bibcodes were deleted.'
         t += '\n'
-        t += 'Solr has ' + compute.solr + ' bibcodes.  It has '  \
-            + compute.newSolr + ' new bibcodes, ' \
-            + compute.deletedSolr + ' bibcodes were deleted.' \
-            + compute.missingSolr + ' canonical bibcodes are missing.'
+        t += 'Solr has ' + str(self.compute.solr) + ' bibcodes.  It has '  \
+            + str(self.compute.new_solr) + ' new bibcodes, ' \
+            + str(self.compute.deleted_solr) + ' bibcodes were deleted.' \
+            + str(self.compute.missing_solr) + ' canonical bibcodes are missing.'
         print t
 
     def create(self):
