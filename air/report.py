@@ -11,7 +11,7 @@ class Report:
     Reports (eventually) are google docs, they are created using google's python api
     """
 
-    def __init__(self, date=Date.TODAY, compute):
+    def __init__(self, compute, date=Date.TODAY):
         service = build('drive', 'v3', developerKey='')
         self.compute = compute
 
@@ -34,13 +34,14 @@ class Report:
 
     def _text(self):
         """return text for report, including links"""
-        t = 'There are new ' + compute.new_canonical + ' canonical bibcodes.  ' \
+        t = 'There are new ' + compute.new_canonical + ' canonical bibcodes.  \n' \
             + compute.deleted_canonical + ' canonical bibcodes were deleted.'
         t += '\n'
         t += 'Solr has ' + compute.solr + ' bibcodes.  It has '  \
             + compute.newSolr + ' new bibcodes, ' \
             + compute.deletedSolr + ' bibcodes were deleted.' \
             + compute.missingSolr + ' canonical bibcodes are missing.'
+        print t
 
     def create(self):
         pass

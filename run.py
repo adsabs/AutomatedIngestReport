@@ -3,6 +3,7 @@ import argparse
 
 from air.gather import Gather
 from air.compute import Compute
+from air.report import Report
 
 
 def main():
@@ -23,7 +24,8 @@ def main():
         c.canonical()
         c.solr()
         print 'computed canonical and bibcodes'
-
+        r = Report(c)
+        print r._text()
 
 if __name__ == '__main__':
     main()

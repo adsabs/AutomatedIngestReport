@@ -50,7 +50,15 @@ class Filename:
 
 
 def lines_in_file(filename):
-    """based on https://gist.github.com/zed/0ac760859e614cd03652#file-gistfile1-py-L41"""
+    lines = 0
+    for line in open(filename):
+        lines += 1
+    return lines
+
+def lines_in_file_foo(filename):
+    """based on https://gist.github.com/zed/0ac760859e614cd03652#file-gistfile1-py-L41
+       works on mac, does not work on unix
+    """
     import os.path
     if os.path.isfile(filename) is False:
         raise ValueError('passed file does not exist')
