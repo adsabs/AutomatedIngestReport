@@ -36,6 +36,6 @@ class Compute:
         self.deleted_solr = comm(solr_start, solr_end, solr_deleted)
 
         solr_extra = Filename.get(self.end, FileType.SOLR, FileAdjective.EXTRA)
-        self.extra_solr = comm(solr_end, solr_start, solr_extra)
+        self.extra_solr = comm(solr_end, canonical_end, solr_extra)
 
         self.solr = lines_in_file(solr_end)

@@ -33,8 +33,9 @@ class Gather:
         based on http://labs.adsabs.harvard.edu/trac/adsabs/wiki/SearchEngineBatch#Example4:Dumpdocumetsbyquery"""
 
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
-        # query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
-        query = 'batch?command=dump-docs-by-query&q=bibcode:2003ASPC..295..361M&fl=bibcode&wt=json'
+        query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
+        # use for testing
+        # query = 'batch?command=dump-docs-by-query&q=bibcode:2003ASPC..295..361M&fl=bibcode&wt=json'
         start = 'batch?command=start&wt=json'
         status = 'batch?command=status&wt=json&jobid='
         get_results = 'batch?command=get-results&wt=json&jobid='
