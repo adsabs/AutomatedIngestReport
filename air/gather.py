@@ -33,6 +33,17 @@ class Gather:
         based on http://labs.adsabs.harvard.edu/trac/adsabs/wiki/SearchEngineBatch#Example4:Dumpdocumetsbyquery"""
 
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
+        query = 'admin/mbeans?stats=true&cat=UPDATEHANDLER&wt=json'
+        rQuery = requests.get(url + query)
+        if rQuery.status_code != 200:
+            logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
+        else:
+            j = rQuery.json()
+            cummulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
+            cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
+            errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            print '!!', cummulative_adds, cumulative_errors, errors
+        
         query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
         # use for testing
         # query = 'batch?command=dump-docs-by-query&q=bibcode:2003ASPC..295..361M&fl=bibcode&wt=json'
