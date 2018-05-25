@@ -12,8 +12,9 @@ class Report:
     Reports (eventually) are google docs, they are created using google's python api
     """
 
-    def __init__(self, compute, date=Date.TODAY):
+    def __init__(self, gather, compute, date=Date.TODAY):
         #service = build('drive', 'v3', developerKey='')
+        self.gather = gather
         self.compute = compute
 
     def _upload_files(self):
@@ -41,7 +42,10 @@ class Report:
         t += 'Solr has ' + str(self.compute.solr) + ' bibcodes.  It has '  \
             + str(self.compute.new_solr) + ' new bibcodes, ' \
             + str(self.compute.deleted_solr) + ' bibcodes were deleted.' \
-            + str(self.compute.missing_solr) + ' canonical bibcodes are missing.'
+            + str(self.compute.missing_solr) + ' canonical bibcodes are missing.\n' \
+            + 'Solr had ' + str(self.gather.cumulative_adds) + ' comulative adds ' \
+            + 'and ' + str(self.gather.errors) + ' errors ' \
+            + 'and ' + str(self.gather.cumulative_errors) + ' cumulative_errors.\n'
         print t
 
     def create(self):

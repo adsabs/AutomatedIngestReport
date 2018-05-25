@@ -24,7 +24,7 @@ def main():
         c.canonical()
         c.solr()
         print 'computed canonical and bibcodes'
-        r = Report(c)
+        r = Report(g, c)
         print r._text()
 
 if __name__ == '__main__':

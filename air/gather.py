@@ -39,10 +39,10 @@ class Gather:
             logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
         else:
             j = rQuery.json()
-            cummulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
-            cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
-            errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
-            print '!!', cummulative_adds, cumulative_errors, errors
+            self.cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
+            self.cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
+            self.errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            print '!!', cumulative_adds, cumulative_errors, errors
         
         query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
         # use for testing
