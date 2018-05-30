@@ -37,15 +37,20 @@ class Report:
     def _text(self):
         """return text for report, including links"""
         t = 'There are new ' + str(self.compute.new_canonical) + ' canonical bibcodes.  \n' \
-            + str(self.compute.deleted_canonical) + ' canonical bibcodes were deleted.'
+            + str(self.compute.deleted_canonical) + ' canonical bibcodes were deleted. \n'
         t += '\n'
         t += 'Solr has ' + str(self.compute.solr) + ' bibcodes.  It has '  \
             + str(self.compute.new_solr) + ' new bibcodes, ' \
             + str(self.compute.deleted_solr) + ' bibcodes were deleted.' \
             + str(self.compute.missing_solr) + ' canonical bibcodes are missing.\n' \
-            + 'Solr had ' + str(self.gather.cumulative_adds) + ' comulative adds ' \
-            + 'and ' + str(self.gather.errors) + ' errors ' \
-            + 'and ' + str(self.gather.cumulative_errors) + ' cumulative_errors.\n'
+            + 'Solr had ' + str(self.gather.solr_cumulative_adds) + ' comulative adds ' \
+            + 'and ' + str(self.gather.solr_errors) + ' errors ' \
+            + 'and ' + str(self.gather.solr_cumulative_errors) + ' cumulative_errors.\n' \
+            + '\n' 
+        e = 'Error counts from elasticsearch: \n'
+        for key, value in self.gather.elasticsearch_errors.iteritems():
+            e += key + ': ' + value + '\n'
+        t += e
         print t
 
     def create(self):

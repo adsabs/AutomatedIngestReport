@@ -5,6 +5,9 @@ import re
 from time import sleep
 from datetime import datetime
 import shutil
+import elasticsearch2
+from elasticsearch_dsl import Search, Q
+from collections import OrderedDict
 
 # from apiclient.discovery import build
 from utils import Filename, FileType, Date, conf, logger, sort
@@ -39,9 +42,9 @@ class Gather:
             logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
         else:
             j = rQuery.json()
-            self.cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
-            self.cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
-            self.errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            self.solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
+            self.solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
+            self.solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
             print '!!', cumulative_adds, cumulative_errors, errors
         
         query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
@@ -104,3 +107,31 @@ class Gather:
         sort(filename)
         
         return True
+
+    def elasticsearch(self):
+        """                                                                                                                    obtain error counts from elasticsearch                                                                                 """
+        u = conf['ELASTICSEARCH_URL']
+        es = elasticsearch2.Elasticsearch(u)
+        # first get total errors for last 24 hours
+        s = Search(using=es, index='_all') \
+                    .query('match', **{'@message': 'error'}) \
+                    .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
+                    .count()
+        errors = OrderedDict()  # using ordered dict to control order in report
+        errors['total'] = s
+        # now get errors individually for each pipeline
+        pipelines = ('backoffice-master_pipeline',
+                     'backoffice-import_pipeline',
+                     'backoffice-data_pipeline',
+                     'backoffice-fulltext_pipeline',
+                     'backoffice-orcid_pipeline',
+                     'backoffice-citation_capture_pipeline')
+        for pipeline in pipelines:
+            s = Search(using=es, index='_all') \
+                              .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
+                              .query('match', **{'@message': 'error'}) \
+                              .filter('match', **{'_type': pipeline}) \
+                              .count()
+            errors[pipeline] = s
+        self.elasticsearch_errors = errors
+

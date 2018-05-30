@@ -1,2 +1,5 @@
 git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.0
+requests
+elasticsearch_dsl
+elasticsearch2
 
