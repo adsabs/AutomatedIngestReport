@@ -13,6 +13,7 @@ def main():
     parser.add_argument('-c', '--compute', default=False, dest='compute', action='store_true',
                         help='compute based on gathered data files')
     args = parser.parse_args()
+    g = c = None
     if args.gather:
         g = Gather()
         g.canonical()
@@ -25,8 +26,9 @@ def main():
         c.canonical()
         c.solr()
         print 'computed canonical and bibcodes'
-        r = Report(g, c)
-        print r._text()
+
+    r = Report(g, c)
+    print r._text()
 
 if __name__ == '__main__':
     main()
