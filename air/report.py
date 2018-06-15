@@ -43,7 +43,7 @@ class Report:
             + str(self.compute.new_solr) + ' new bibcodes, ' \
             + str(self.compute.deleted_solr) + ' bibcodes were deleted.' \
             + str(self.compute.missing_solr) + ' canonical bibcodes are missing.\n' \
-            + 'Solr had ' + str(self.gather.solr_cumulative_adds) + ' comulative adds ' \
+            + 'Solr had ' + str(self.gather.solr_cumulative_adds) + ' cumulative adds ' \
             + 'and ' + str(self.gather.solr_errors) + ' errors ' \
             + 'and ' + str(self.gather.solr_cumulative_errors) + ' cumulative_errors.\n' \
             + '\n' 
@@ -54,6 +54,7 @@ class Report:
         
         t += '\nMetrics info: \nNumber of null records = ' + gather.metrics_null_count \
              + '\nNumber of updates since yesterday' + gather.metrics_updated_count + '\n'
+
         print t
 
     def create(self):

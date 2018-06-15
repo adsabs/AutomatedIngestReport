@@ -134,6 +134,29 @@ class Gather:
                               .filter('match', **{'_type': pipeline}) \
                               .count()
             errors[pipeline] = s
+
+        # next, check on specific errors that should have been fixed
+        # message must be in double quotes to force exact phrase match
+        tests = (('backoffice-master_pipeline', '"too many records to add to db"'),
+                 ('backoffice-fulltext_pipeline', '"is linked to a non-existent file"'))
+        passed_tests = []
+        failed_tests = []
+        for pipeline, message in tests:
+            count = Search(using=es, index='_all') \
+                              .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
+                              .query('query_string', query=message) \
+                              .filter('match', **{'_type': pipeline}) \
+                              .count()
+            if count == 0:
+                passed_tests.append('{}, message {}\n'.format(pipeline, message))
+            else:
+                failed_tests.append('Unexpected error in {}: {} occured {} times' \
+                                     .format(pipeline, message, count))
+        if len(failed_tests):
+            errors['failed_tests'] = failed_tests
+        if len(passed_tests):
+            errors['passed_tests'] = passed_tests
+        
         self.elasticsearch_errors = errors
 
 
