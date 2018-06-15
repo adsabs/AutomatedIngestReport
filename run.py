@@ -18,6 +18,7 @@ def main():
         g.canonical()
         g.solr()
         g.elasticsearch()
+        g.postgres()
         print 'gathered list of bibcodes in canonical and bibcodes in solr'
 
     if args.compute:

@@ -8,6 +8,8 @@ import shutil
 import elasticsearch2
 from elasticsearch_dsl import Search, Q
 from collections import OrderedDict
+from sqlalchemy import create_engine
+
 
 # from apiclient.discovery import build
 from utils import Filename, FileType, Date, conf, logger, sort
@@ -45,7 +47,6 @@ class Gather:
             self.solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
             self.solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
             self.solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
-            print '!!', cumulative_adds, cumulative_errors, errors
         
         query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
         # use for testing
@@ -135,3 +136,16 @@ class Gather:
             errors[pipeline] = s
         self.elasticsearch_errors = errors
 
+
+    def postgres(self):
+        # consider building on ADSPipelineUtils                                      
+        engine = create_engine(conf['SQLALCHEMY_URL'], echo=False)
+        connection = engine.connect()
+        result = connection.execute("select count(*) from records where metrics_updated>now() - interval ' 1 day';")
+        count = result.first()
+        self.metrics_updated_count = count
+        result = connection.execute("select count(*) from records where metrics is null;")
+        count = result.first()
+        self.metrics_null_count = count
+        connection.close()
+        print 'from metrics database, null count = {}, 1 day updated count = {}'.format(self.metrics_null_count, self.metrics_updated_count)

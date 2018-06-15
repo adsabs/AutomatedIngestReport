@@ -49,8 +49,11 @@ class Report:
             + '\n' 
         e = 'Error counts from elasticsearch: \n'
         for key, value in self.gather.elasticsearch_errors.iteritems():
-            e += key + ': ' + value + '\n'
+            e += key + ': ' + str(value) + '\n'
         t += e
+        
+        t += '\nMetrics info: \nNumber of null records = ' + gather.metrics_null_count \
+             + '\nNumber of updates since yesterday' + gather.metrics_updated_count + '\n'
         print t
 
     def create(self):

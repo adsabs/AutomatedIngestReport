@@ -1,5 +1,7 @@
 git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.0
+alembic==0.9.1
 requests
 elasticsearch_dsl
 elasticsearch2
+psycopg2==2.7.1
 
