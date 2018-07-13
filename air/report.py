@@ -51,9 +51,12 @@ class Report:
         for key, value in self.gather.elasticsearch_errors.iteritems():
             e += key + ': ' + str(value) + '\n'
         t += e
-        
-        t += '\nMetrics info: \nNumber of null records = ' + gather.metrics_null_count \
-             + '\nNumber of updates since yesterday' + gather.metrics_updated_count + '\n'
+
+        if self.gather.nonbib_ned_row_count == 0:
+            t += 'Error: nonbib ned table has zero rows\n'
+
+        t += '\nMetrics info: \nNumber of null records = ' + self.gather.metrics_null_count \
+             + '\nNumber of updates since yesterday = ' + self.gather.metrics_updated_count + '\n'
 
         print t
 

@@ -138,7 +138,8 @@ class Gather:
         # next, check on specific errors that should have been fixed
         # message must be in double quotes to force exact phrase match
         tests = (('backoffice-master_pipeline', '"too many records to add to db"'),
-                 ('backoffice-fulltext_pipeline', '"is linked to a non-existent file"'))
+                 ('backoffice-fulltext_pipeline', '"is linked to a non-existent file"'),
+                 ('backoffice-nonbib_pipeline', '"Unbalanced Parentheses"'))
         passed_tests = []
         failed_tests = []
         for pipeline, message in tests:
@@ -156,19 +157,27 @@ class Gather:
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
             errors['passed_tests'] = passed_tests
-        
+        print errors
         self.elasticsearch_errors = errors
 
 
     def postgres(self):
         # consider building on ADSPipelineUtils                                      
-        engine = create_engine(conf['SQLALCHEMY_URL'], echo=False)
+        engine = create_engine(conf['SQLALCHEMY_URL_NONBIB'], echo=False)
+        connection = engine.connect()
+        result = connection.execute("select count(*) from nonbib.ned;")
+        count = result.first()[0]
+        self.nonbib_ned_row_count = count
+        print 'from nonbib database, ned table has {} rows'.format(count)
+        connection.close()
+
+        engine = create_engine(conf['SQLALCHEMY_URL_MASTER'], echo=False)
         connection = engine.connect()
         result = connection.execute("select count(*) from records where metrics_updated>now() - interval ' 1 day';")
         count = result.first()
-        self.metrics_updated_count = count
+        self.metrics_updated_count = str(count)
         result = connection.execute("select count(*) from records where metrics is null;")
         count = result.first()
-        self.metrics_null_count = count
+        self.metrics_null_count = str(count)
         connection.close()
         print 'from metrics database, null count = {}, 1 day updated count = {}'.format(self.metrics_null_count, self.metrics_updated_count)
