@@ -37,7 +37,7 @@ class TestUtils(unittest.TestCase):
         with patch('requests.get') as r:
             r.side_effect = [initial, start, not_finished, finished, data]
             g = Gather()
-            success = g.solr()
+            success = g.solr_bibcodes()
         self.assertTrue(success)
         filename = Filename.get(Date.TODAY, FileType.SOLR)
         f = open(filename, 'r')

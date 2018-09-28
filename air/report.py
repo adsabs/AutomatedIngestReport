@@ -1,6 +1,7 @@
 
 #from apiclient.discovery import build
 #from oauth2client.file import Storage
+from string import Template
 from utils import Date
 
 # this code is not yet complete
@@ -36,32 +37,63 @@ class Report:
 
     def _text(self):
         """return text for report, including links"""
-        t = 'There are new ' + str(self.compute.new_canonical) + ' canonical bibcodes.  \n' \
-            + str(self.compute.deleted_canonical) + ' canonical bibcodes were deleted. \n'
-        t += '\n'
-        t += 'Solr has ' + str(self.compute.solr) + ' bibcodes.  It has '  \
-            + str(self.compute.new_solr) + ' new bibcodes, ' \
-            + str(self.compute.deleted_solr) + ' bibcodes were deleted.' \
-            + str(self.compute.missing_solr) + ' canonical bibcodes are missing.\n' \
-            + 'Solr had ' + str(self.gather.solr_cumulative_adds) + ' cumulative adds ' \
-            + 'and ' + str(self.gather.solr_errors) + ' errors ' \
-            + 'and ' + str(self.gather.solr_cumulative_errors) + ' cumulative_errors.\n' \
-            + '\n' 
-        e = 'Error counts from elasticsearch: \n'
-        for key, value in self.gather.elasticsearch_errors.iteritems():
-            e += key + ': ' + str(value) + '\n'
-        t += e
-
-        if self.gather.nonbib_ned_row_count == 0:
-            t += 'Error: nonbib ned table has zero rows\n'
-
-        t += '\nMetrics info: \nNumber of null records = ' + self.gather.metrics_null_count \
-             + '\nNumber of updates since yesterday = ' + self.gather.metrics_updated_count + '\n'
+        d = {}
+        d.update(self.gather.values)
+        d.update(self.compute.values)
+        t = Template(self._text_template).safe_substitute(d)
 
         print t
+        return t
+
+    def _html(self):
+        """return an html representation of the report"""
+        
 
     def create(self):
         pass
+
+    _text_template = '''
+    Canonical bibcodes since yesterday: $new_canonical created, $deleted_canonical deleted.
+
+    Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.
+
+    Solr has $solr_cumulative_adds) cumulative adds
+    and $solr_errors errors
+    and $solr_cumulative_errors cumulative_errors.
+
+    Cause Of Solr Changes
+    Total number of records changed: $master_total_changed
+    Changes sent to solr: $master_solr_changed
+    Changes from bib: $master_bib_changed
+    Changes from fulltext: $master_fulltext_changed
+    Changes from orcid: $master_orcid_changed
+    changes from nonbib: $master_nonbib_changed
+
+    Error counts from elasticsearch:
+    backoffice-master_pipeline: $backoffice-master_pipeline
+    backoffice-import_pipeline: $backoffice-import_pipeline
+    backoffice-data_pipeline: $backoffice-data_pipeline
+    backoffice-fulltext_pipeline: $backoffice-fulltext_pipeline
+    backoffice-orcid_pipeline: $backoffice-orcid_pipeline
+    backoffice-citation_capture_pipeline: $backoffice-citation_capture_pipeline
+
+    nonbib ned row (count should not be zero): $nonbib_ned_row_count
+
+    Metrics info:
+    Number of null records = $metrics_null_count
+    Number of updates since yesterday = $metrics_updated_count
+
+
+    '''
+
+
+    _html_template = '''
+    <html>
+      <body>
+        
+      </body>
+    </html>
+    '''
 
     # https://developers.google.com/drive/v3/web/quickstart/python
     # https://developers.google.com/drive/v3/web/simple-upload

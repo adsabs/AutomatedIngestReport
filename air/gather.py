@@ -9,7 +9,7 @@ import elasticsearch2
 from elasticsearch_dsl import Search, Q
 from collections import OrderedDict
 from sqlalchemy import create_engine
-
+from subprocess import Popen, PIPE, STDOUT
 
 # from apiclient.discovery import build
 from utils import Filename, FileType, Date, conf, logger, sort
@@ -23,6 +23,19 @@ class Gather:
     def __init__(self, date=Date.TODAY):
         """use passed date as prefix in filenames"""
         self.date = date
+        self.values = {}
+        self.values['passed_tests'] = []
+        self.values['failed_tests'] = []
+
+    def all(self):
+        self.solr_admin()
+        jobid = self.solr_bibcodes_start()
+        self.canonical()
+        self.elasticsearch()
+        self.postgres()
+        self.classic()
+        self.solr_bibcodes_finish(jobid)
+
 
     def canonical(self):
         """create local copy of canonical bibcodes"""
@@ -33,10 +46,12 @@ class Gather:
         sort(air)
 
     def solr(self):
-        """use solr batch api to get list of all bibcode it has
+        self.solr_admin()
+        self.solr_bibcodes()
 
-        based on http://labs.adsabs.harvard.edu/trac/adsabs/wiki/SearchEngineBatch#Example4:Dumpdocumetsbyquery"""
 
+    def solr_admin(self):
+        """obtain admin oriented data from solr instance """
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
         query = 'admin/mbeans?stats=true&cat=UPDATEHANDLER&wt=json'
         rQuery = requests.get(url + query)
@@ -44,16 +59,24 @@ class Gather:
             logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
         else:
             j = rQuery.json()
-            self.solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
-            self.solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
-            self.solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            self.values['solr_cumulative_adds'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
+            self.values['solr_cumulative_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
+            self.values['solr_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
         
+    def solr_bibcodes(self):
+        jobid = self.solr_bibcodes_start()
+        self.solr_bibcodes_finish(jobid)
+
+
+    def solr_bibcodes_start(self):
+        """use solr batch api to get list of all bibcode it has
+
+        based on http://labs.adsabs.harvard.edu/trac/adsabs/wiki/SearchEngineBatch#Example4:Dumpdocumetsbyquery"""
+        url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')            
         query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
         # use for testing
         # query = 'batch?command=dump-docs-by-query&q=bibcode:2003ASPC..295..361M&fl=bibcode&wt=json'
         start = 'batch?command=start&wt=json'
-        status = 'batch?command=status&wt=json&jobid='
-        get_results = 'batch?command=get-results&wt=json&jobid='
 
         logger.info('sending initial batch query to solr at %s', url)
         rQuery = requests.get(url + query)
@@ -63,7 +86,6 @@ class Gather:
             return False
         j = rQuery.json()
         jobid = j['jobid']
-
         logger.info('sending solr start batch command')
         rStart = requests.get(url + start)
         if rStart.status_code != 200:
@@ -71,6 +93,13 @@ class Gather:
                          rStart.status_code, rStart.text)
             return False
 
+        return jobid
+
+    def solr_bibcodes_finish(self, jobid):
+        """get results from earlier submitted job"""
+        url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
+        status = 'batch?command=status&wt=json&jobid='
+        get_results = 'batch?command=get-results&wt=json&jobid='
         # now we wait for solr to process batch query
         finished = False
         startTime = datetime.now()
@@ -110,7 +139,7 @@ class Gather:
         return True
 
     def elasticsearch(self):
-        """                                                                                                                    obtain error counts from elasticsearch                                                                                 """
+        """obtain error counts from elasticsearch """
         u = conf['ELASTICSEARCH_URL']
         es = elasticsearch2.Elasticsearch(u)
         # first get total errors for last 24 hours
@@ -133,8 +162,8 @@ class Gather:
                               .query('match', **{'@message': 'error'}) \
                               .filter('match', **{'_type': pipeline}) \
                               .count()
-            errors[pipeline] = s
-
+            self.values[pipeline] = s
+        self.values['backoffice-fulltext_pipeline'] = '123'
         # next, check on specific errors that should have been fixed
         # message must be in double quotes to force exact phrase match
         tests = (('backoffice-master_pipeline', '"too many records to add to db"'),
@@ -158,26 +187,65 @@ class Gather:
         if len(passed_tests):
             errors['passed_tests'] = passed_tests
         print errors
-        self.elasticsearch_errors = errors
+        self.values['failed_tests'].extend(failed_tests)
+        self.values['passed_tests'].extend(passed_tests)
 
+
+    def classic(self):
+        """are there errors from the classic pipeline"""
+        files = ('/proj/ads/abstracts/sources/ArXiv/log/update.log', 
+                 '/proj/ads/abstracts/sources/ArXiv/log/usage.log')
+        for f in files:
+            self.classic_file_check(f)
+
+    def classic_file_check(self, f):
+        x = Popen(['grep', '-i', 'error', f], stdout=PIPE, stderr=STDOUT)
+        resp = x.communicate()[0]
+        if x.returncode == 1:
+            # no errors found in log files
+            msg = 'passed arxiv check: file {}'.format(f)
+            print msg
+            self.values['passed_tests'].extend(msg)
+        else:
+            # return code = 0 if grep matched
+            # return code = 2 if grep encounted an error
+            msg = 'failed arxiv check: file {}, error {}'.format(f, resp)
+            msg = 'failed arxiv check: file {}, error = \n{}'.format(f, resp)
+            print msg
+            self.values['failed_tests'].extend(msg)
 
     def postgres(self):
         # consider building on ADSPipelineUtils                                      
         engine = create_engine(conf['SQLALCHEMY_URL_NONBIB'], echo=False)
         connection = engine.connect()
-        result = connection.execute("select count(*) from nonbib.ned;")
-        count = result.first()[0]
-        self.nonbib_ned_row_count = count
-        print 'from nonbib database, ned table has {} rows'.format(count)
+        self.values['nonbib_ned_row_count'] = self.exec_sql(connection, "select count(*) from nonbib.ned;")
+        print 'from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count'])
         connection.close()
 
         engine = create_engine(conf['SQLALCHEMY_URL_MASTER'], echo=False)
         connection = engine.connect()
-        result = connection.execute("select count(*) from records where metrics_updated>now() - interval ' 1 day';")
-        count = result.first()
-        self.metrics_updated_count = str(count)
-        result = connection.execute("select count(*) from records where metrics is null;")
-        count = result.first()
-        self.metrics_null_count = str(count)
+        self.values['metrics_updated_count'] = self.exec_sql(connection, 
+                                                        "select count(*) from records where metrics_updated>now() - interval ' 1 day';")
+        self.values['metrics_null_count'] = self.exec_sql(connection,
+                                                     "select count(*) from records where metrics is null;")
+
+        self.values['master_total_changed'] = self.exec_sql(connection,
+                                                       "select count(*) from records where processed >= NOW() - '1 day'::INTERVAL;")
+        self.values['master_solr_changed'] = self.exec_sql(connection,
+                                                      "select count(*) from records where solr_processed >= NOW() - '1 day'::INTERVAL;")
+        self.values['master_bib_changed'] = self.exec_sql(connection, 
+                                                     "select count(*) from records where bib_data_updated >= NOW() - '1 day'::INTERVAL;")
+        self.values['master_fulltext_changed'] = self.exec_sql(connection,
+                                                          "select count(*) from records where fulltext_updated >= NOW() - '1 day'::INTERVAL;")
+        self.values['master_orcid_changed'] = self.exec_sql(connection,
+                                                       "select count(*) from records where orcid_claims_updated >= NOW() - '1 day'::INTERVAL;")
+        self.values['master_nonbib_changed'] = self.exec_sql(connection,
+                                                        "select count(*) from records where nonbib_data_updated >= NOW() - '1 day'::INTERVAL;")
+
         connection.close()
-        print 'from metrics database, null count = {}, 1 day updated count = {}'.format(self.metrics_null_count, self.metrics_updated_count)
+        print 'from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count'])
+
+    def exec_sql(self, connection, query):
+        result = connection.execute(query)
+        count = result.first()[0]
+        return str(count)

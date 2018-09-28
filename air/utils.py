@@ -93,3 +93,10 @@ def sort(filename):
     if r != 0:
         logger.error('in sort, c command returned {}'.format(c, r))
     remove(tmp_filename)
+
+def occurances_in_file(s, filename):
+    """return how many times the string s appears in the passed file"""
+    # grep -c doesn't work well ehre
+    c = 'grep {} {} | wc -l'.format(s, filename)
+    r = subprocess.call(c, shell=True)
+    return r

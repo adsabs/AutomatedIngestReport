@@ -16,10 +16,7 @@ def main():
     g = c = None
     if args.gather:
         g = Gather()
-        g.canonical()
-        g.solr()
-        g.elasticsearch()
-        g.postgres()
+        g.all()
         print 'gathered list of bibcodes in canonical and bibcodes in solr'
 
     if args.compute:
