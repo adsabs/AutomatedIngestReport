@@ -45,7 +45,7 @@ class Compute:
         """compute new, deleted"""
         for e in conf['ERRORS'].keys():
 
-            err_msg = "_" + "_".join(e.split())
+            err_msg = "_" + ("_".join(e.split())).replace('-', '_')
 
             ft_start = Filename.get(self.start, FileType.FULLTEXT, adjective=None, msg=err_msg + "_")
             ft_end = Filename.get(self.end, FileType.FULLTEXT, adjective=None, msg=err_msg + "_")

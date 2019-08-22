@@ -297,7 +297,7 @@ class Gather:
                         dirs.append(r[j])
 
             # create filename based on error message and date
-            fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + "_".join(err_msg.split()) + "_")
+            fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + ("_".join(err_msg.split())).replace('-', '_') + "_")
 
             # write bibcodes and directories for each error type to file
             with open(fname, 'w') as f:

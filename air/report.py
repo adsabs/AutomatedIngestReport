@@ -40,6 +40,7 @@ class Report:
         d = {}
         d.update(self.gather.values)
         d.update(self.compute.values)
+        print(d)
         t = Template(self._text_template).safe_substitute(d)
 
         print t
@@ -80,7 +81,7 @@ class Report:
     Fulltext Error Counts:
     'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted.
     'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted.
-    'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non-existent_file created, $deleted_ft_is_linked_to_a_non-existent_file deleted.
+    'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted.
     'is linked to a zero byte size file' errors since yesterday: $new_ft_is_linked_to_a_zero_byte_size_file created, $deleted_ft_is_linked_to_a_zero_byte_size_file deleted.
     'No such file or directory' errors since yesterday: $new_ft_No_such_file_or_directory created, $deleted_ft_No_such_file_or_directory deleted.
 
