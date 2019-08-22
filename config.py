@@ -17,7 +17,7 @@ SQLALCHEMY_URL_NONBIB = 'postgres://data_pipeline:data_pipeline@%s:15432/data_pi
 AIR_DATA_DIRECTORY = './data/'
 
 FT_LOGS = '/proj/ads/kris/logs/'
-FT_OUT = '/proj/ads/kris/tmp/'
+
 ERRORS = {"extraction failed for bibcode": FT_LOGS + "adsft.extraction.log*",
           "format not currently supported for extraction": FT_LOGS + "ads-fulltext.log*",
           "is linked to a non-existent file": FT_LOGS + "*.log*",

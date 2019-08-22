@@ -255,8 +255,6 @@ class Gather:
 
     def fulltext(self):
 
-        out_dir = conf['FT_OUT']
-
         # types of errors with corresponding file names
         errors = conf['ERRORS']
 
@@ -301,6 +299,6 @@ class Gather:
             fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + "_".join(err_msg.split()) + "_")
 
             # write bibcodes and directories for each error type to file
-            with open(out_dir + fname, 'w') as f:
+            with open(fname, 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
                 writer.writerows(zip(bibs, dirs))
