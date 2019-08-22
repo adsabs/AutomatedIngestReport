@@ -40,7 +40,6 @@ class Report:
         d = {}
         d.update(self.gather.values)
         d.update(self.compute.values)
-        print(d)
         t = Template(self._text_template).safe_substitute(d)
 
         print t
