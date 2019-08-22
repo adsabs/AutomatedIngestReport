@@ -255,18 +255,10 @@ class Gather:
 
     def fulltext(self):
 
-        # location of log files, these are being copied from fulltext docker container on adsvm05
-        log_dir = "/proj/ads/kris/logs/"
-
-        out_dir = "/proj/ads/kris/tmp/"
+        out_dir = conf['FT_OUT']
 
         # types of errors with corresponding file names
-        errors = {"extraction failed for bibcode" : log_dir  + "adsft.extraction.log*",
-                  "format not currently supported for extraction": log_dir + "ads-fulltext.log*",
-                  "is linked to a non-existent file": log_dir + "*.log*",
-                  "is linked to a zero byte size file": log_dir + "*.log*",
-                  "No such file or directory": log_dir + "ads-fulltext.log*"
-                  }
+        errors = conf['ERRORS']
 
         # get todays date
         now = datetime.strftime(datetime.now(), "%Y-%m-%d")
@@ -297,8 +289,7 @@ class Gather:
                 x = Popen(args, stdout=PIPE, stderr=STDOUT)
 
                 # get bibcodes/directories from todays errors
-                resp = x.communicate()[0]
-                resp = resp.split("\n")
+                resp = x.communicate()[0].split("\n")
 
                 for r in resp:
                     if r:
@@ -307,9 +298,9 @@ class Gather:
                         dirs.append(r[j])
 
             # create filename based on error message and date
-            fname1 = "_".join(err_msg.split()) + "_" + now + ".tsv"
+            fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + "_".join(err_msg.split()) + "_")
 
             # write bibcodes and directories for each error type to file
-            with open(out_dir + fname1, 'w') as f:
+            with open(out_dir + fname, 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
                 writer.writerows(zip(bibs, dirs))

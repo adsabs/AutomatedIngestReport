@@ -14,6 +14,7 @@ conf = load_config(proj_home='./')
 class FileType:
     CANONICAL = 'CANONICAL'
     SOLR = 'SOLR'
+    FULLTEXT = 'FULLTEXT'
 
 
 class FileAdjective:
@@ -31,7 +32,7 @@ class Date:
 class Filename:
 
     @staticmethod
-    def get(_date, _type, adjective=None):
+    def get(_date, _type, adjective=None, msg=None):
         """convert passed date, type and adjective into the proper filename"""
         if _date is Date.TODAY:
             _date = datetime.now()
@@ -41,7 +42,11 @@ class Filename:
             raise ValueError('invalid date passed {}, expected datetime or valid string'.format(_date))
 
         d = _date.strftime('%Y%m%d')
-        if adjective:
+        if msg and adjective:
+            filename = d + msg.lower() + adjective.lower() + _type.capitalize() + '.txt'
+        elif msg:
+            filename = d + msg.lower() + _type.capitalize() + '.txt'
+        elif adjective:
             filename = d + adjective.lower() + _type.capitalize() + '.txt'
         else:
             filename = d + _type.capitalize() + '.txt'
