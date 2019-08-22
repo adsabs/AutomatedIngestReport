@@ -38,6 +38,7 @@ class Gather:
         self.postgres()
         self.classic()
         self.solr_bibcodes_finish(jobid)
+        self.fulltext()
 
 
     def canonical(self):

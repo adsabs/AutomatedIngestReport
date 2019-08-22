@@ -23,6 +23,7 @@ def main():
         c = Compute()
         c.canonical()
         c.solr()
+        c.fulltext()
         print 'computed canonical and bibcodes'
 
     r = Report(g, c)
