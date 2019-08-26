@@ -42,8 +42,10 @@ class Compute:
         self.values['solr'] = lines_in_file(solr_end)
 
     def fulltext(self):
-        """compute new, deleted"""
-        for e in conf['ERRORS'].keys():
+        """Compute the new and deleted bibcodes for each type of error from
+        todays list of bibcodes compared with yesterdays list. Results stored
+        in variables that are then used in report.py."""
+        for e in conf['FULLTEXT_ERRORS'].keys():
 
             err_msg = "_" + ("_".join(e.split())).replace('-', '_')
 

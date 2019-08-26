@@ -256,8 +256,12 @@ class Gather:
 
     def fulltext(self):
 
+        """Get errors from todays fulltext logs and generate a list for each
+        type of error of corresponding bibcodes and source directories. These
+        lists are written to files that are further processed in compute.py"""
+
         # types of errors with corresponding file names
-        errors = conf['ERRORS']
+        errors = conf['FULLTEXT_ERRORS']
 
         # get todays date
         now = datetime.strftime(datetime.now(), "%Y-%m-%d")
@@ -269,15 +273,21 @@ class Gather:
             dirs = []
 
             # location of bibcode and directory in message field
-            i = 1
-            j = 3
+            """example log:
+            {"asctime": "2019-08-26T11:38:34.201Z", "msecs": 201.6739845275879,
+            "levelname": "ERROR", "process": 13411, "threadName": "MainThread",
+            "filename": "checker.py", "lineno": 238, "message": "Bibcode '2019arXiv190105463B'
+            is linked to a non-existent file '/some/directory/filename.xml'",
+            "timestamp": "2019-08-26T11:38:34.201Z", "hostname": "adsvm05"}"""
+            loc_bib = 1
+            loc_dir = 3
 
             if (err_msg == "No such file or directory"):
-                i = 3
-                j = 11
+                loc_bib = 3
+                loc_dir = 11
             elif (err_msg == "format not currently supported for extraction"):
-                i = 7
-                j = 23
+                loc_bib = 7
+                loc_dir = 23
 
             # loop through files
             for name in glob.glob(errors[err_msg]):
@@ -293,8 +303,8 @@ class Gather:
                 for r in resp:
                     if r:
                         r = r.split("'")
-                        bibs.append(r[i])
-                        dirs.append(r[j])
+                        bibs.append(r[loc_bib])
+                        dirs.append(r[loc_dir])
 
             # create filename based on error message and date
             fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + ("_".join(err_msg.split())).replace('-', '_') + "_")
@@ -303,3 +313,5 @@ class Gather:
             with open(fname, 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
                 writer.writerows(zip(bibs, dirs))
+
+            sort(fname)
