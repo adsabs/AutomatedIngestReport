@@ -47,7 +47,7 @@ class Report:
 
     def _html(self):
         """return an html representation of the report"""
-        
+
 
     def create(self):
         pass
@@ -77,6 +77,13 @@ class Report:
     backoffice-orcid_pipeline: $backoffice-orcid_pipeline
     backoffice-citation_capture_pipeline: $backoffice-citation_capture_pipeline
 
+    Fulltext Error Counts:
+    'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted.
+    'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted.
+    'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted.
+    'is linked to a zero byte size file' errors since yesterday: $new_ft_is_linked_to_a_zero_byte_size_file created, $deleted_ft_is_linked_to_a_zero_byte_size_file deleted.
+    'No such file or directory' errors since yesterday: $new_ft_No_such_file_or_directory created, $deleted_ft_No_such_file_or_directory deleted.
+
     nonbib ned row (count should not be zero): $nonbib_ned_row_count
 
     Metrics info:
@@ -90,7 +97,7 @@ class Report:
     _html_template = '''
     <html>
       <body>
-        
+
       </body>
     </html>
     '''

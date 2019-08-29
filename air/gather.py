@@ -10,6 +10,9 @@ from elasticsearch_dsl import Search, Q
 from collections import OrderedDict
 from sqlalchemy import create_engine
 from subprocess import Popen, PIPE, STDOUT
+import shlex
+import glob
+import csv
 
 # from apiclient.discovery import build
 from utils import Filename, FileType, Date, conf, logger, sort
@@ -35,6 +38,7 @@ class Gather:
         self.postgres()
         self.classic()
         self.solr_bibcodes_finish(jobid)
+        self.fulltext()
 
 
     def canonical(self):
@@ -62,7 +66,7 @@ class Gather:
             self.values['solr_cumulative_adds'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
             self.values['solr_cumulative_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
             self.values['solr_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
-        
+
     def solr_bibcodes(self):
         jobid = self.solr_bibcodes_start()
         self.solr_bibcodes_finish(jobid)
@@ -72,7 +76,7 @@ class Gather:
         """use solr batch api to get list of all bibcode it has
 
         based on http://labs.adsabs.harvard.edu/trac/adsabs/wiki/SearchEngineBatch#Example4:Dumpdocumetsbyquery"""
-        url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')            
+        url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
         query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
         # use for testing
         # query = 'batch?command=dump-docs-by-query&q=bibcode:2003ASPC..295..361M&fl=bibcode&wt=json'
@@ -81,7 +85,7 @@ class Gather:
         logger.info('sending initial batch query to solr at %s', url)
         rQuery = requests.get(url + query)
         if rQuery.status_code != 200:
-            logger.error('initial batch solr query failed, status: %s, text: %s', 
+            logger.error('initial batch solr query failed, status: %s, text: %s',
                          rQuery.status_code, rQuery.text)
             return False
         j = rQuery.json()
@@ -115,11 +119,11 @@ class Gather:
             else:
                 sleep(10)
             if (datetime.now() - startTime).total_seconds() > 3600 * 2:
-                logger.error('solr batch process taking too long, seconds: %s;', 
+                logger.error('solr batch process taking too long, seconds: %s;',
                              (datetime.now() - startTime).total_seconds())
                 return False
 
-        logger.info('solr bacth completed in %s seconds, now fetching bibcodes', 
+        logger.info('solr bacth completed in %s seconds, now fetching bibcodes',
                     (datetime.now() - startTime).total_seconds())
         rResults = requests.get(url + get_results + jobid)
         if rResults.status_code != 200:
@@ -135,7 +139,7 @@ class Gather:
         with open(filename, 'w') as f:
             f.write(bibs)
         sort(filename)
-        
+
         return True
 
     def elasticsearch(self):
@@ -193,7 +197,7 @@ class Gather:
 
     def classic(self):
         """are there errors from the classic pipeline"""
-        files = ('/proj/ads/abstracts/sources/ArXiv/log/update.log', 
+        files = ('/proj/ads/abstracts/sources/ArXiv/log/update.log',
                  '/proj/ads/abstracts/sources/ArXiv/log/usage.log')
         for f in files:
             self.classic_file_check(f)
@@ -215,7 +219,7 @@ class Gather:
             self.values['failed_tests'].extend(msg)
 
     def postgres(self):
-        # consider building on ADSPipelineUtils                                      
+        # consider building on ADSPipelineUtils
         engine = create_engine(conf['SQLALCHEMY_URL_NONBIB'], echo=False)
         connection = engine.connect()
         self.values['nonbib_ned_row_count'] = self.exec_sql(connection, "select count(*) from nonbib.ned;")
@@ -224,7 +228,7 @@ class Gather:
 
         engine = create_engine(conf['SQLALCHEMY_URL_MASTER'], echo=False)
         connection = engine.connect()
-        self.values['metrics_updated_count'] = self.exec_sql(connection, 
+        self.values['metrics_updated_count'] = self.exec_sql(connection,
                                                         "select count(*) from records where metrics_updated>now() - interval ' 1 day';")
         self.values['metrics_null_count'] = self.exec_sql(connection,
                                                      "select count(*) from records where metrics is null;")
@@ -233,7 +237,7 @@ class Gather:
                                                        "select count(*) from records where processed >= NOW() - '1 day'::INTERVAL;")
         self.values['master_solr_changed'] = self.exec_sql(connection,
                                                       "select count(*) from records where solr_processed >= NOW() - '1 day'::INTERVAL;")
-        self.values['master_bib_changed'] = self.exec_sql(connection, 
+        self.values['master_bib_changed'] = self.exec_sql(connection,
                                                      "select count(*) from records where bib_data_updated >= NOW() - '1 day'::INTERVAL;")
         self.values['master_fulltext_changed'] = self.exec_sql(connection,
                                                           "select count(*) from records where fulltext_updated >= NOW() - '1 day'::INTERVAL;")
@@ -249,3 +253,65 @@ class Gather:
         result = connection.execute(query)
         count = result.first()[0]
         return str(count)
+
+    def fulltext(self):
+
+        """Get errors from todays fulltext logs and generate a list for each
+        type of error of corresponding bibcodes and source directories. These
+        lists are written to files that are further processed in compute.py"""
+
+        # types of errors with corresponding file names
+        errors = conf['FULLTEXT_ERRORS']
+
+        # get todays date
+        now = datetime.strftime(datetime.now(), "%Y-%m-%d")
+
+        # loop through types of errors messages
+        for err_msg in errors.keys():
+
+            bibs = []
+            dirs = []
+
+            # location of bibcode and directory in message field
+            """example log:
+            {"asctime": "2019-08-26T11:38:34.201Z", "msecs": 201.6739845275879,
+            "levelname": "ERROR", "process": 13411, "threadName": "MainThread",
+            "filename": "checker.py", "lineno": 238, "message": "Bibcode '2019arXiv190105463B'
+            is linked to a non-existent file '/some/directory/filename.xml'",
+            "timestamp": "2019-08-26T11:38:34.201Z", "hostname": "adsvm05"}"""
+            loc_bib = 1
+            loc_dir = 3
+
+            if (err_msg == "No such file or directory"):
+                loc_bib = 3
+                loc_dir = 11
+            elif (err_msg == "format not currently supported for extraction"):
+                loc_bib = 7
+                loc_dir = 23
+
+            # loop through files
+            for name in glob.glob(errors[err_msg]):
+
+                command = "awk -F\: '/" + err_msg + "/ && /" + now + "/ && /ERROR/ {print $0}' " + name
+                args = shlex.split(command)
+
+                x = Popen(args, stdout=PIPE, stderr=STDOUT)
+
+                # get bibcodes/directories from todays errors
+                resp = x.communicate()[0].split("\n")
+
+                for r in resp:
+                    if r:
+                        r = r.split("'")
+                        bibs.append(r[loc_bib])
+                        dirs.append(r[loc_dir])
+
+            # create filename based on error message and date
+            fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + ("_".join(err_msg.split())).replace('-', '_') + "_")
+
+            # write bibcodes and directories for each error type to file
+            with open(fname, 'w') as f:
+                writer = csv.writer(f, delimiter='\t')
+                writer.writerows(zip(bibs, dirs))
+
+            sort(fname)

@@ -16,6 +16,17 @@ SQLALCHEMY_URL_NONBIB = 'postgres://data_pipeline:data_pipeline@%s:15432/data_pi
 # new files written here, expected files read from here
 AIR_DATA_DIRECTORY = './data/'
 
+FULLTEXT_LOGS = '/proj/ads/articles/fulltext/logs/'
+
+# the errors/keys of this dict exactly match the errors found in their corresponding
+# log files  and are used in the "awk" command to return all occurences of said error
+FULLTEXT_ERRORS = {"extraction failed for bibcode": FULLTEXT_LOGS + "adsft.extraction.log*",
+          "format not currently supported for extraction": FULLTEXT_LOGS + "ads-fulltext.log*",
+          "is linked to a non-existent file": FULLTEXT_LOGS + "*.log*",
+          "is linked to a zero byte size file": FULLTEXT_LOGS + "*.log*",
+          "No such file or directory": FULLTEXT_LOGS + "ads-fulltext.log*"
+}
+
 proj_home = './'
 
 LOG_LEVEL = 'INFO'

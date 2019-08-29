@@ -1,5 +1,5 @@
 
-from utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file
+from utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
 
 
 class Compute:
@@ -13,7 +13,7 @@ class Compute:
     def canonical(self):
         """compute new, deleted"""
         canonical_start = Filename.get(self.start, FileType.CANONICAL)
-        canonical_end = Filename.get(self.end, FileType.CANONICAL)        
+        canonical_end = Filename.get(self.end, FileType.CANONICAL)
         canonical_new = Filename.get(self.end, FileType.CANONICAL, FileAdjective.NEW)
         self.values['new_canonical'] = comm(canonical_end, canonical_start, canonical_new)
 
@@ -40,3 +40,21 @@ class Compute:
         self.values['extra_solr'] = comm(solr_end, canonical_end, solr_extra)
 
         self.values['solr'] = lines_in_file(solr_end)
+
+    def fulltext(self):
+        """Compute the new and deleted bibcodes for each type of error from
+        todays list of bibcodes compared with yesterdays list. Results stored
+        in variables that are then used in report.py."""
+        for e in conf['FULLTEXT_ERRORS'].keys():
+
+            err_msg = "_" + ("_".join(e.split())).replace('-', '_')
+
+            ft_start = Filename.get(self.start, FileType.FULLTEXT, adjective=None, msg=err_msg + "_")
+            ft_end = Filename.get(self.end, FileType.FULLTEXT, adjective=None, msg=err_msg + "_")
+            ft_new = Filename.get(self.end, FileType.FULLTEXT, adjective=FileAdjective.NEW, msg=err_msg + "_")
+            self.values['new_ft' + err_msg] = comm(ft_end, ft_start, ft_new)
+
+            ft_deleted = Filename.get(self.end, FileType.FULLTEXT, FileAdjective.DELETED, msg=err_msg + "_")
+            self.values['deleted_ft' + err_msg] = comm(ft_start, ft_end, ft_deleted)
+
+            self.values['ft' + err_msg] = lines_in_file(ft_end)
