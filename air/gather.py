@@ -10,9 +10,9 @@ from elasticsearch_dsl import Search, Q
 from collections import OrderedDict
 from sqlalchemy import create_engine
 from subprocess import Popen, PIPE, STDOUT
-import shlex
-import glob
 import csv
+from datetime import datetime, timedelta
+import os
 
 # from apiclient.discovery import build
 from utils import Filename, FileType, Date, conf, logger, sort
@@ -256,62 +256,62 @@ class Gather:
 
     def fulltext(self):
 
-        """Get errors from todays fulltext logs and generate a list for each
-        type of error of corresponding bibcodes and source directories. These
-        lists are written to files that are further processed in compute.py"""
 
-        # types of errors with corresponding file names
-        errors = conf['FULLTEXT_ERRORS']
+        """obtain error counts from elasticsearch """
+        u = conf['ELASTICSEARCH_URL']
+        es = elasticsearch2.Elasticsearch(u)
+        pipeline = 'backoffice-fulltext_pipeline'
 
-        # get todays date
-        now = datetime.strftime(datetime.now(), "%Y-%m-%d")
+        # get start time
+        start = Search(using=es, index='_all') \
+                    .query('match', **{'@message': 'Loading records from: /proj/ads/abstracts/config/links/fulltext/all.links'}) \
+                    .filter('match', **{'_type': pipeline}) \
+                    .execute() \
+                    .hits[0] \
+                    .timestamp
 
-        # loop through types of errors messages
-        for err_msg in errors.keys():
+        # convert to datetime object
+        start = datetime.strptime(start.split('.')[0], '%Y-%m-%dT%H:%M:%S')
 
-            bibs = []
-            dirs = []
+        self.values['ft_start']	= start
 
-            # location of bibcode and directory in message field
-            """example log:
-            {"asctime": "2019-08-26T11:38:34.201Z", "msecs": 201.6739845275879,
-            "levelname": "ERROR", "process": 13411, "threadName": "MainThread",
-            "filename": "checker.py", "lineno": 238, "message": "Bibcode '2019arXiv190105463B'
-            is linked to a non-existent file '/some/directory/filename.xml'",
-            "timestamp": "2019-08-26T11:38:34.201Z", "hostname": "adsvm05"}"""
-            loc_bib = 1
-            loc_dir = 3
+        # fulltext pipeline runs for ~15 hours without forcing extraction
+        if (datetime.now() - start) < timedelta(hours=15):
+            print("fulltext pipeline is most likely not done processing.")
+        else:
 
-            if (err_msg == "No such file or directory"):
-                loc_bib = 3
-                loc_dir = 11
-            elif (err_msg == "format not currently supported for extraction"):
-                loc_bib = 7
-                loc_dir = 23
+            total_num_errors = 0
 
-            # loop through files
-            for name in glob.glob(errors[err_msg]):
+            for err in conf['FULLTEXT_ERRORS']:
 
-                command = "awk -F\: '/" + err_msg + "/ && /" + now + "/ && /ERROR/ {print $0}' " + name
-                args = shlex.split(command)
+                bibs = []
 
-                x = Popen(args, stdout=PIPE, stderr=STDOUT)
+                s = Search(using=es, index='_all') \
+                                  .filter('range', **{'@timestamp': {'gte': start, 'lt': 'now'}}) \
+                                  .query('query_string', query=err) \
+                                  .filter('match', **{'_type': pipeline})
 
-                # get bibcodes/directories from todays errors
-                resp = x.communicate()[0].split("\n")
+                err_str = "_".join(err.split('"')[1].split()).replace('-', '_').replace(']', '').replace('[', '')
+                
+                filename = str(start).split()[0] + "_" + err_str + ".txt"
+                dir = "data/ft/" + err_str + '/' + filename
 
-                for r in resp:
-                    if r:
-                        r = r.split("'")
-                        bibs.append(r[loc_bib])
-                        dirs.append(r[loc_dir])
+                #if not os.path.isfile(dir):
+                with open(dir, "w") as f:
+                    for hit in s.scan():
+                        if "Retrying" in hit.message:
+                            continue
+                        if (re.findall(r"'(.*?)'", hit.message)[0] == 'bibcode') or (re.findall(r"'(.*?)'", hit.message)[0] == 'UPDATE'):
+                            bib = re.search(r"u'bibcode': u'(.*?)'", hit.message).group(1)
+                            f.write(bib + '\n')
+                            bibs.append(bib)
+                        else:
+                            bib = re.findall(r"'(.*?)'", hit.message)[0]
+                            f.write(bib + '\n')
+                            bibs.append(bib)
 
-            # create filename based on error message and date
-            fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + ("_".join(err_msg.split())).replace('-', '_') + "_")
+                count = len(set(bibs))
+                self.values[err_str + "_total"] = count 
+                total_num_errors += count
 
-            # write bibcodes and directories for each error type to file
-            with open(fname, 'w') as f:
-                writer = csv.writer(f, delimiter='\t')
-                writer.writerows(zip(bibs, dirs))
-
-            sort(fname)
+            self.values['total_fulltext_errors'] = total_num_errors

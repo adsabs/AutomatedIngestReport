@@ -18,14 +18,12 @@ AIR_DATA_DIRECTORY = './data/'
 
 FULLTEXT_LOGS = '/proj/ads/articles/fulltext/logs/'
 
-# the errors/keys of this dict exactly match the errors found in their corresponding
-# log files  and are used in the "awk" command to return all occurences of said error
-FULLTEXT_ERRORS = {"extraction failed for bibcode": FULLTEXT_LOGS + "adsft.extraction.log*",
-          "format not currently supported for extraction": FULLTEXT_LOGS + "ads-fulltext.log*",
-          "is linked to a non-existent file": FULLTEXT_LOGS + "*.log*",
-          "is linked to a zero byte size file": FULLTEXT_LOGS + "*.log*",
-          "No such file or directory": FULLTEXT_LOGS + "ads-fulltext.log*"
-}
+# in double quotes to force exact phrase match during gather 
+FULLTEXT_ERRORS = ['"extraction failed for bibcode"',
+                   '"format not currently supported for extraction"',
+                   '"is linked to a non-existent file"',
+                   '"is linked to a zero byte size file"',
+                   '"[Errno 2] No such file or directory"']
 
 proj_home = './'
 

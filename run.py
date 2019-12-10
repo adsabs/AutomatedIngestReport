@@ -16,13 +16,13 @@ def main():
     g = c = None
     if args.gather:
         g = Gather()
-        g.all()
+        g.fulltext()
         print 'gathered list of bibcodes in canonical and bibcodes in solr'
 
     if args.compute:
         c = Compute()
-        c.canonical()
-        c.solr()
+        #c.canonical()
+        #c.solr()
         c.fulltext()
         print 'computed canonical and bibcodes'
 
