@@ -17,7 +17,7 @@ To gather all the needed data and compute state:
   - we assume the location of all.links to be /proj/ads/abstracts/config/links/fulltext/all.links 
   - There is a date in the report indicating the date of the last fulltext extraction 
   - A timeframe of 15 hours is used to avoid pulling logs from a pipeline that is mid-process
-    - This will fail if we use the force extraction (-e flag) as the pipeline takes much longer in this case
+    - This will fail if we force extraction (-e flag) as the pipeline takes much longer in this case
 
 - This directory structure needs to exist for files to be stored:
 
