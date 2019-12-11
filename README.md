@@ -14,7 +14,7 @@ To gather all the needed data and compute state:
 - Errors are defined in the config file
   - new errors can be added to this list
 - Results will only change if the pipeline has processed all.links since the last AIR
-  - we assume the location of all.links to be /proj/ads/abstracts/config/links/fulltext/all.links 
+  - we assume the location of all.links to be `/proj/ads/abstracts/config/links/fulltext/all.links` 
   - There is a date in the report indicating the date of the last fulltext extraction 
   - A timeframe of 15 hours is used to avoid pulling logs from a pipeline that is mid-process
     - This will fail if we force extraction (-e flag) as the pipeline takes much longer in this case
