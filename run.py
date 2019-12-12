@@ -21,8 +21,8 @@ def main():
 
     if args.compute:
         c = Compute()
-        #c.canonical()
-        #c.solr()
+        c.canonical()
+        c.solr()
         c.fulltext()
         print 'computed canonical and bibcodes'
 

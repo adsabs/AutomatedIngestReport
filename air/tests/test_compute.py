@@ -50,5 +50,12 @@ class TestCompute(unittest.TestCase):
 
         for err in conf['FULLTEXT_ERRORS']:
 
-            self.assertTrue(cmp('new.good', 'new.txt'), err + ' new')
-            self.assertTrue(cmp('fixed.good', 'fixed.txt'), err + ' fixed')
+            err_msg = "_".join(err.split('"')[1].split()).replace('-', '_').replace(']', '').replace('[', '')
+
+            filename = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/new.tsv'
+            filegood = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/new.good'
+            self.assertTrue(cmp(filename, filegood), err + ' new')
+
+            filename = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/fixed.tsv'
+            filegood = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/fixed.good'
+            self.assertTrue(cmp(filename, filegood), err + ' fixed')
