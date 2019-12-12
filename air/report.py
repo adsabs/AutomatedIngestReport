@@ -101,7 +101,7 @@ class Report:
         $fixed_ft_is_linked_to_a_zero_byte_size_file fixed
         $is_linked_to_a_zero_byte_size_file_total total errors
 
-    'No such file or directory' errors: 
+    'No such (extracted) file or directory' errors: 
         $new_ft_Errno_2_No_such_file_or_directory new 
         $fixed_ft_Errno_2_No_such_file_or_directory fixed
         $Errno_2_No_such_file_or_directory_total total errors
