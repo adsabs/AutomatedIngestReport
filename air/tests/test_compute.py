@@ -26,6 +26,7 @@ class TestCompute(unittest.TestCase):
         c = Compute(start, end)
         c.canonical()
         c.solr()
+        c.fulltext()
 
         filename = Filename.get(end, FileType.CANONICAL, FileAdjective.NEW)
         filegood = filename.replace('.txt', '.good')
@@ -46,3 +47,8 @@ class TestCompute(unittest.TestCase):
         filename = Filename.get(end, FileType.SOLR, FileAdjective.DELETED)
         filegood = filename.replace('.txt', '.good')
         self.assertTrue(cmp(filegood, filename), 'solr deleted')
+
+        for err in conf['FULLTEXT_ERRORS']:
+
+            self.assertTrue(cmp('new.good', 'new.txt'), err + ' new')
+            self.assertTrue(cmp('fixed.good', 'fixed.txt'), err + ' fixed')

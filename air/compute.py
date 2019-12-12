@@ -45,16 +45,17 @@ class Compute:
         """Compute the new and deleted bibcodes for each type of error from
         most recent list of bibcodes compared with previous most recent list. Results stored
         in variables that are then used in report.py."""
+        
         for err in conf['FULLTEXT_ERRORS']:
 
             err_msg = "_".join(err.split('"')[1].split()).replace('-', '_').replace(']', '').replace('[', '')
-            dir = "data/ft/" + err_msg + '/'
+            dir = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/'
 
             # get 2 most recent files
             files = sorted(glob.glob(dir + '*.txt'), key=sorter, reverse=True)
 
             sort(files[0])
-            sort(files[1])          
+            sort(files[1])
 
             remove_duplicates(files[0])
             remove_duplicates(files[1])
