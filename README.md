@@ -10,5 +10,26 @@ compute what is missing, what is new, what is deleted, etc.
 To gather all the needed data and compute state:
 `python run.py --gather --compute`
 
+### Fulltext Section
+- Errors are defined in the config file
+  - new errors can be added to this list
+- Results will only change if the pipeline has processed all.links since the last AIR
+  - we assume the location of all.links to be `/proj/ads/abstracts/config/links/fulltext/all.links` 
+  - There is a date in the report indicating the date of the last fulltext extraction 
+  - A timeframe of 15 hours is used to avoid pulling logs from a pipeline that is mid-process
+    - This will fail if we force extraction (-e flag) as the pipeline takes much longer in this case
+
+- This directory structure needs to exist for files to be stored:
+
+  ```bash
+  data
+  └── ft
+      ├── Errno_2_No_such_file_or_directory
+      ├── extraction_failed_for_bibcode
+      ├── format_not_currently_supported_for_extraction
+      ├── is_linked_to_a_non_existent_file
+      └── is_linked_to_a_zero_byte_size_file
+  ```
+
 ## Maintainer
 Steve McDonald

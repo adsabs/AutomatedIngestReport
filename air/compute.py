@@ -1,6 +1,6 @@
 
-from utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
-
+from utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf, sorter, sort, remove_duplicates
+import glob
 
 class Compute:
     """compute missing bibcodes and other values"""
@@ -43,18 +43,27 @@ class Compute:
 
     def fulltext(self):
         """Compute the new and deleted bibcodes for each type of error from
-        todays list of bibcodes compared with yesterdays list. Results stored
+        most recent list of bibcodes compared with previous most recent list. Results stored
         in variables that are then used in report.py."""
-        for e in conf['FULLTEXT_ERRORS'].keys():
+        
+        for err in conf['FULLTEXT_ERRORS']:
 
-            err_msg = "_" + ("_".join(e.split())).replace('-', '_')
+            err_msg = "_".join(err.split('"')[1].split()).replace('-', '_').replace(']', '').replace('[', '')
+            dir = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/'
 
-            ft_start = Filename.get(self.start, FileType.FULLTEXT, adjective=None, msg=err_msg + "_")
-            ft_end = Filename.get(self.end, FileType.FULLTEXT, adjective=None, msg=err_msg + "_")
-            ft_new = Filename.get(self.end, FileType.FULLTEXT, adjective=FileAdjective.NEW, msg=err_msg + "_")
-            self.values['new_ft' + err_msg] = comm(ft_end, ft_start, ft_new)
+            # get 2 most recent files
+            files = sorted(glob.glob(dir + '*.txt'), key=sorter, reverse=True)
 
-            ft_deleted = Filename.get(self.end, FileType.FULLTEXT, FileAdjective.DELETED, msg=err_msg + "_")
-            self.values['deleted_ft' + err_msg] = comm(ft_start, ft_end, ft_deleted)
+            sort(files[0])
+            sort(files[1])
 
-            self.values['ft' + err_msg] = lines_in_file(ft_end)
+            remove_duplicates(files[0])
+            remove_duplicates(files[1])
+
+            ft_start = files[1]
+            ft_end = files[0]
+            ft_new = dir + "new.tsv"
+            self.values['new_ft_' + err_msg] = comm(ft_end, ft_start, ft_new)
+
+            ft_fixed = dir + "fixed.tsv"
+            self.values['fixed_ft_' + err_msg] = comm(ft_start, ft_end, ft_fixed)

@@ -26,6 +26,7 @@ class TestCompute(unittest.TestCase):
         c = Compute(start, end)
         c.canonical()
         c.solr()
+        c.fulltext()
 
         filename = Filename.get(end, FileType.CANONICAL, FileAdjective.NEW)
         filegood = filename.replace('.txt', '.good')
@@ -46,3 +47,15 @@ class TestCompute(unittest.TestCase):
         filename = Filename.get(end, FileType.SOLR, FileAdjective.DELETED)
         filegood = filename.replace('.txt', '.good')
         self.assertTrue(cmp(filegood, filename), 'solr deleted')
+
+        for err in conf['FULLTEXT_ERRORS']:
+
+            err_msg = "_".join(err.split('"')[1].split()).replace('-', '_').replace(']', '').replace('[', '')
+
+            filename = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/new.tsv'
+            filegood = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/new.good'
+            self.assertTrue(cmp(filename, filegood), err + ' new')
+
+            filename = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/fixed.tsv'
+            filegood = conf['AIR_DATA_DIRECTORY'] + "ft/" + err_msg + '/fixed.good'
+            self.assertTrue(cmp(filename, filegood), err + ' fixed')
