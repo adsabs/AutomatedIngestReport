@@ -61,7 +61,7 @@ def lines_in_file(filename):
         for line in open(filename):
             lines += 1
     except Exception, err:
-        print "error in utils.lines_in_file: %s" % err
+        logger.error("error in utils.lines_in_file: %s" % err)
     return lines
 
 def lines_in_file_foo(filename):
