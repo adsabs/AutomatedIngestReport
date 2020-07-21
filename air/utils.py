@@ -57,8 +57,11 @@ class Filename:
 
 def lines_in_file(filename):
     lines = 0
-    for line in open(filename):
-        lines += 1
+    try:
+        for line in open(filename):
+            lines += 1
+    except Exception, err:
+        print "error in utils.lines_in_file: %s" % err
     return lines
 
 def lines_in_file_foo(filename):

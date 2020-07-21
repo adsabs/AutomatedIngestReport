@@ -136,9 +136,12 @@ class Gather:
         # convert to json-ish text to simple string, response includes newlines between bibcodes
         bibs = re.sub(r'{"bibcode":"|,|"}', '', bibs)
         filename = Filename.get(self.date, FileType.SOLR)
-        with open(filename, 'w') as f:
-            f.write(bibs)
-        sort(filename)
+        try:
+            with open(filename, 'w') as f:
+                f.write(bibs)
+            sort(filename)
+        except Exception, err:
+            logger.error('Error in Gather writing Solr bibs file: %s' % err)
 
         return True
 
