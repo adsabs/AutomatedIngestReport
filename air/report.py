@@ -78,33 +78,11 @@ class Report:
     backoffice-citation_capture_pipeline: $backoffice-citation_capture_pipeline
 
     Fulltext Error Counts:
-    most recent extraction start time: $ft_start
-    total errors: $total_fulltext_errors
-
-    'extraction failed for bibcode' errors:
-        $new_ft_extraction_failed_for_bibcode new
-        $fixed_ft_extraction_failed_for_bibcode fixed
-        $extraction_failed_for_bibcode_total total errors
-
-    'format not currently supported for extraction' errors:
-        $new_ft_format_not_currently_supported_for_extraction new 
-        $fixed_ft_format_not_currently_supported_for_extraction fixed
-        $format_not_currently_supported_for_extraction_total total errors
-
-    'is linked to a non-existent file' errors:
-        $new_ft_is_linked_to_a_non_existent_file new 
-        $fixed_ft_is_linked_to_a_non_existent_file fixed
-        $is_linked_to_a_non_existent_file_total total errors
-
-    'is linked to a zero byte size file' errors: 
-        $new_ft_is_linked_to_a_zero_byte_size_file new 
-        $fixed_ft_is_linked_to_a_zero_byte_size_file fixed
-        $is_linked_to_a_zero_byte_size_file_total total errors
-
-    'No such (extracted) file or directory' errors: 
-        $new_ft_Errno_2_No_such_file_or_directory new 
-        $fixed_ft_Errno_2_No_such_file_or_directory fixed
-        $Errno_2_No_such_file_or_directory_total total errors
+    'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted.
+    'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted.
+    'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted.
+    'is linked to a zero byte size file' errors since yesterday: $new_ft_is_linked_to_a_zero_byte_size_file created, $deleted_ft_is_linked_to_a_zero_byte_size_file deleted.
+    'No such file or directory' errors since yesterday: $new_ft_No_such_file_or_directory created, $deleted_ft_No_such_file_or_directory deleted.
 
     nonbib ned row (count should not be zero): $nonbib_ned_row_count
 

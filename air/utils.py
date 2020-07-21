@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from os import remove
 from shutil import move
 import subprocess
-import os
 
 from adsputils import setup_logging, load_config
 
@@ -61,7 +60,7 @@ def lines_in_file(filename):
         for line in open(filename):
             lines += 1
     except Exception, err:
-        logger.error("error in utils.lines_in_file: %s" % err)
+        logger.error('In utils.lines_in_file: %s' % err)
     return lines
 
 def lines_in_file_foo(filename):
@@ -109,22 +108,3 @@ def occurances_in_file(s, filename):
     c = 'grep {} {} | wc -l'.format(s, filename)
     r = subprocess.call(c, shell=True)
     return r
-
-def sorter(path):
-    """ to arrange files by date in the filename to be able to obtain the two most
-        recent files from the directory"""
-
-    filename = os.path.basename(path)
-    return datetime.strptime(filename[0:10], '%Y-%m-%d')
-
-def remove_duplicates(filename):
-    """use temp file and unix uniq command remove duplicates in place"""
-
-    tmp_filename = '{}.tmp'.format(filename)
-    move(filename, tmp_filename)
-    c = 'uniq {} > {}'.format(tmp_filename, filename)
-    r = subprocess.call(c, shell=True)
-    if r != 0:
-	logger.error('in sort, c command returned {}'.format(c, r))
-    remove(tmp_filename)
-

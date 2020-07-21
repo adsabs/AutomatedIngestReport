@@ -23,8 +23,11 @@ def main():
         c = Compute()
         c.canonical()
         c.solr()
-        c.fulltext()
-        print 'computed canonical and bibcodes'
+        try:
+            c.fulltext()
+            print 'computed canonical and bibcodes'
+        except Exception, err:
+            print "RUN error on c.fulltext():",err
 
     r = Report(g, c)
     print r._text()
