@@ -1,3 +1,5 @@
+
+
 import requests
 import re
 from time import sleep
@@ -105,6 +107,7 @@ class Gather:
         # now we wait for solr to process batch query
         finished = False
         startTime = datetime.now()
+        logger.info('Starting Solr bibcode fetch at %s' % startTime.strftime('%c'))
         while not finished:
             rStatus = requests.get(url + status + jobid)
             if rStatus.status_code != 200:
@@ -116,12 +119,12 @@ class Gather:
                 finished = True
             else:
                 sleep(10)
-            if (datetime.now() - startTime).total_seconds() > 3600 * 2:
+            if (datetime.now() - startTime).total_seconds() > 3600 * 3:
                 logger.error('solr batch process taking too long, seconds: %s;',
                              (datetime.now() - startTime).total_seconds())
                 return False
 
-        logger.info('solr bacth completed in %s seconds, now fetching bibcodes',
+        logger.info('solr batch completed in %s seconds, now fetching bibcodes',
                     (datetime.now() - startTime).total_seconds())
         rResults = requests.get(url + get_results + jobid)
         if rResults.status_code != 200:
