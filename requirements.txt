@@ -1,7 +1,9 @@
 git+https://github.com/adsabs/ADSPipelineUtils.git@v1.0.0
 alembic==0.9.1
-requests
-elasticsearch_dsl
-elasticsearch2
+requests==2.19.1
+elasticsearch_dsl==6.1.0
+elasticsearch2==2.5.0
+importlib_metadata==1.6.0
+ipaddress==1.0.23
 psycopg2==2.7.1
 
