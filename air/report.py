@@ -1,5 +1,4 @@
 
-from adsputils import load_config
 from dateutil.tz import tzutc
 import datetime
 import time
@@ -10,7 +9,7 @@ import requests
 #from apiclient.discovery import build
 #from oauth2client.file import Storage
 from string import Template
-from .utils import Date
+from utils import Date
 
 # this code is not yet complete
 
@@ -67,8 +66,8 @@ class Report:
         :return: JSON results
         """
 
-        config = {}
-        config.update(load_config())
+        # config = {}
+        # config.update(load_config())
 
         # get start and end timestamps (in milliseconds since 1970 epoch)
         now = datetime.datetime.now(tzutc())

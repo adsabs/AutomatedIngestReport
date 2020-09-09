@@ -15,7 +15,7 @@ import glob
 import csv
 
 # from apiclient.discovery import build
-from .utils import Filename, FileType, Date, conf, logger, sort
+from utils import Filename, FileType, Date, conf, logger, sort
 
 
 class Gather:
