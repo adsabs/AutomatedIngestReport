@@ -1,5 +1,5 @@
 
-from utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
+from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
 
 
 class Compute:

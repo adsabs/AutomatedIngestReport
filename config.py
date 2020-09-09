@@ -34,3 +34,4 @@ FULLTEXT_ERRORS = {"extraction failed for bibcode": FULLTEXT_LOGS + "adsft.extra
 
 LOG_LEVEL = 'INFO'
 
+KIBANA_TOKEN = 'dummy value'
