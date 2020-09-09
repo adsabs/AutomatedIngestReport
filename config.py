@@ -1,6 +1,6 @@
+import os
 
 # where to send solr queries, includes core name
-# SOLR_URL = 'http://localhost:19984/solr/collection1/'
 SOLR_URL = 'http://localhost:9983/solr/collection1/'
 
 # the current list of canonical bibcodes
@@ -32,6 +32,5 @@ FULLTEXT_ERRORS = {"extraction failed for bibcode": FULLTEXT_LOGS + "adsft.extra
           "No such file or directory": FULLTEXT_LOGS + "ads-fulltext.log*"
 }
 
-proj_home = './'
-
 LOG_LEVEL = 'INFO'
+
