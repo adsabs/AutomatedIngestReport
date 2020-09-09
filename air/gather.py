@@ -56,6 +56,7 @@ class Gather:
 
     def solr_admin(self):
         """obtain admin oriented data from solr instance """
+
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
         query = 'admin/mbeans?stats=true&cat=UPDATEHANDLER&wt=json'
         rQuery = requests.get(url + query)
@@ -76,6 +77,7 @@ class Gather:
         """use solr batch api to get list of all bibcode it has
 
         based on http://labs.adsabs.harvard.edu/trac/adsabs/wiki/SearchEngineBatch#Example4:Dumpdocumetsbyquery"""
+
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
         query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
         # use for testing
@@ -108,6 +110,7 @@ class Gather:
         finished = False
         startTime = datetime.now()
         logger.info('Starting Solr bibcode fetch at %s' % startTime.strftime('%c'))
+
         while not finished:
             rStatus = requests.get(url + status + jobid)
             if rStatus.status_code != 200:

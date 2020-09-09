@@ -24,9 +24,13 @@ def main():
     if args.kibana:
         k = Report(g,c)
         result = k.query_Kibana()
-        count = result['responses'][0]['hits']['total']
-        mesg = 'Number of myADS emails: %s' % (count)
-        print(mesg)
+        try:
+            count = result['responses'][0]['hits']['total']
+        except:
+            pass
+        else:
+            mesg = 'Number of myADS emails: %s' % (count)
+            print(mesg)
 
     if args.gather:
         g = Gather()

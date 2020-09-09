@@ -11,6 +11,8 @@ import requests
 from string import Template
 from utils import Date
 
+import config
+
 # this code is not yet complete
 
 
@@ -98,9 +100,11 @@ class Report:
         #    '"docvalue_fields":["@timestamp"]}\n\n')
 
         header = {'origin': 'https://pipeline-kibana.kube.adslabs.org',
-                  'authorization': 'Basic ' + config['KIBANA_TOKEN'],
+                  'authorization': 'Basic ' + config.KIBANA_TOKEN,
+                  # 'authorization': 'Basic ' + config['KIBANA_TOKEN'],
                   'content-type': 'application/x-ndjson',
                   'kbn-version': '5.5.2'}
+        print("lol:",header)
 
         url = 'https://pipeline-kibana.kube.adslabs.org/_plugin/kibana/elasticsearch/_msearch'
 
@@ -114,7 +118,8 @@ class Report:
             return results
         else:
             # logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
-            print('For query {}, there was a network problem: {0}\n'.format(query,resp))
+            print("lulz:",type(resp),resp)
+            print('For query %s, there was a network problem: %s\n' % (query,resp))
             return None
 
 
