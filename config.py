@@ -35,8 +35,8 @@ FULLTEXT_ERRORS = {"extraction failed for bibcode": FULLTEXT_LOGS + "adsft.extra
 LOG_LEVEL = 'INFO'
 
 
+KIBANA_TOKEN = 'dummy_token'
 if os.path.isfile('./local_config.py'):
     from local_config import *
 else:
     print('Warning: invalid API token!')
-    KIBANA_TOKEN = 'dummy_token'
