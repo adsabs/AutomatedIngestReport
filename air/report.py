@@ -78,11 +78,11 @@ class Report:
         if n_days != 0:
             start_time = (now - datetime.timedelta(days=n_days) - epoch).total_seconds() * 1000.
         else:
-            start_time = 0.
+            midnight = datetime.datetime.combine(now, datetime.time.min).replace(tzinfo=pytz.UTC)
+            start_time = ((midnight - epoch).total_seconds() - (5.*3600.)) * 1000.
+            # start_time = 0.
         start_time = str(int(start_time))
         end_time = str(int(end_time))
-        print(type(start_time),start_time)
-        print(type(end_time),end_time)
 
         q_rows = '{"index":["cwl-*"]}\n{"size":%.0f,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' % (rows)
 
@@ -104,7 +104,6 @@ class Report:
                   # 'authorization': 'Basic ' + config['KIBANA_TOKEN'],
                   'content-type': 'application/x-ndjson',
                   'kbn-version': '5.5.2'}
-        print("lol:",header)
 
         url = 'https://pipeline-kibana.kube.adslabs.org/_plugin/kibana/elasticsearch/_msearch'
 
@@ -118,7 +117,6 @@ class Report:
             return results
         else:
             # logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
-            print("lulz:",type(resp),resp)
             print('For query %s, there was a network problem: %s\n' % (query,resp))
             return None
 

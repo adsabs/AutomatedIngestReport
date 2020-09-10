@@ -23,7 +23,8 @@ def main():
     # get Kibana output
     if args.kibana:
         k = Report(g,c)
-        result = k.query_Kibana()
+        myads_query = query='"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""'
+        result = k.query_Kibana(query=myads_query, n_days=0, rows=5)
         try:
             count = result['responses'][0]['hits']['total']
         except:
