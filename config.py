@@ -38,4 +38,5 @@ LOG_LEVEL = 'INFO'
 if os.path.isfile('./local_config.py'):
     from local_config import *
 else:
+    print('Warning: invalid API token!')
     KIBANA_TOKEN = 'dummy_token'
