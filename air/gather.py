@@ -141,7 +141,7 @@ class Gather:
             with open(filename, 'w') as f:
                 f.write(bibs)
             sort(filename)
-        except Exception, err:
+        except Exception as err:
             logger.error('In gather.solr_bibcodes_finish: %s' %s)
 
         return True
@@ -194,7 +194,7 @@ class Gather:
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
             errors['passed_tests'] = passed_tests
-        print errors
+        print(errors)
         self.values['failed_tests'].extend(failed_tests)
         self.values['passed_tests'].extend(passed_tests)
 
@@ -212,14 +212,14 @@ class Gather:
         if x.returncode == 1:
             # no errors found in log files
             msg = 'passed arxiv check: file {}'.format(f)
-            print msg
+            print(msg)
             self.values['passed_tests'].extend(msg)
         else:
             # return code = 0 if grep matched
             # return code = 2 if grep encounted an error
             msg = 'failed arxiv check: file {}, error {}'.format(f, resp)
             msg = 'failed arxiv check: file {}, error = \n{}'.format(f, resp)
-            print msg
+            print(msg)
             self.values['failed_tests'].extend(msg)
 
     def postgres(self):
@@ -227,7 +227,7 @@ class Gather:
         engine = create_engine(conf['SQLALCHEMY_URL_NONBIB'], echo=False)
         connection = engine.connect()
         self.values['nonbib_ned_row_count'] = self.exec_sql(connection, "select count(*) from nonbib.ned;")
-        print 'from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count'])
+        print('from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count']))
         connection.close()
 
         engine = create_engine(conf['SQLALCHEMY_URL_MASTER'], echo=False)
@@ -251,7 +251,7 @@ class Gather:
                                                         "select count(*) from records where nonbib_data_updated >= NOW() - '1 day'::INTERVAL;")
 
         connection.close()
-        print 'from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count'])
+        print('from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count']))
 
     def exec_sql(self, connection, query):
         result = connection.execute(query)

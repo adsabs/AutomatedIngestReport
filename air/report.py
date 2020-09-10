@@ -1,8 +1,17 @@
 
+from dateutil.tz import tzutc
+import datetime
+import time
+import pytz
+import urllib3
+import requests
+
 #from apiclient.discovery import build
 #from oauth2client.file import Storage
 from string import Template
 from utils import Date
+
+import config
 
 # this code is not yet complete
 
@@ -41,12 +50,75 @@ class Report:
         d.update(self.gather.values)
         d.update(self.compute.values)
         t = Template(self._text_template).safe_substitute(d)
-
-        print t
         return t
 
     def _html(self):
         """return an html representation of the report"""
+
+    def query_Kibana(self, query='"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""',
+                     n_days=1,rows=1):
+        """
+        Function to query Kibana for a given input query and return the response.
+
+        :param query: string query, same as would be entered in the Kibana search input (be sure to escape quotes and wrap
+            query in double quotes - see default query for formatting)
+        :param n_days: number of days backwards to query, starting now (=0 for all time)
+        :param rows: number of results to return. If you just need the total number of hits and not the results
+            themselves, can be small.
+        :return: JSON results
+        """
+
+        # config = {}
+        # config.update(load_config())
+
+        # get start and end timestamps (in milliseconds since 1970 epoch)
+        now = datetime.datetime.now(tzutc())
+        epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
+        end_time = (now - epoch).total_seconds() * 1000.
+        if n_days != 0:
+            start_time = (now - datetime.timedelta(days=n_days) - epoch).total_seconds() * 1000.
+        else:
+            midnight = datetime.datetime.combine(now, datetime.time.min).replace(tzinfo=pytz.UTC)
+            start_time = ((midnight - epoch).total_seconds() - (5.*3600.)) * 1000.
+            # start_time = 0.
+        start_time = str(int(start_time))
+        end_time = str(int(end_time))
+
+        q_rows = '{"index":["cwl-*"]}\n{"size":%.0f,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' % (rows)
+
+        q_query = '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":'+query+'}}, '
+
+        q_range = '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time,end_time)
+
+        q_doc = '"docvalue_fields":["@timestamp"]}\n\n'
+
+        data = (q_rows + q_query + q_range + q_doc)
+
+        #data = ('{"index":["cwl-*"]}\n{"size":%.0f,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' %(rows) + 
+        #    '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":'+query+'}}, ' +
+        #    '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time,end_time) + 
+        #    '"docvalue_fields":["@timestamp"]}\n\n')
+
+        header = {'origin': 'https://pipeline-kibana.kube.adslabs.org',
+                  'authorization': 'Basic ' + config.KIBANA_TOKEN,
+                  # 'authorization': 'Basic ' + config['KIBANA_TOKEN'],
+                  'content-type': 'application/x-ndjson',
+                  'kbn-version': '5.5.2'}
+
+        url = 'https://pipeline-kibana.kube.adslabs.org/_plugin/kibana/elasticsearch/_msearch'
+
+        # set to bypass SSL cert problem w/ Kibana
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+        resp = requests.post(url, data=data, headers=header, verify=False)
+
+        if resp.status_code == 200:
+            results = resp.json()
+            return results
+        else:
+            # logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
+            print('For query %s, there was a network problem: %s\n' % (query,resp))
+            return None
 
 
     def create(self):

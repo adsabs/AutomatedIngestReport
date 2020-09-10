@@ -59,7 +59,7 @@ def lines_in_file(filename):
     try:
         for line in open(filename):
             lines += 1
-    except Exception, err:
+    except Exception as err:
         logger.error('In utils.lines_in_file: %s' % err)
     return lines
 
