@@ -142,12 +142,12 @@ class Report:
     changes from nonbib: $master_nonbib_changed
 
     Error counts from elasticsearch:
-    backoffice-master_pipeline: $backoffice-master_pipeline
-    backoffice-import_pipeline: $backoffice-import_pipeline
-    backoffice-data_pipeline: $backoffice-data_pipeline
-    backoffice-fulltext_pipeline: $backoffice-fulltext_pipeline
-    backoffice-orcid_pipeline: $backoffice-orcid_pipeline
-    backoffice-citation_capture_pipeline: $backoffice-citation_capture_pipeline
+    backoffice-master_pipeline: $backoffice_master_pipeline
+    backoffice-import_pipeline: $backoffice_import_pipeline
+    backoffice-data_pipeline: $backoffice_data_pipeline
+    backoffice-fulltext_pipeline: $backoffice_fulltext_pipeline
+    backoffice-orcid_pipeline: $backoffice_orcid_pipeline
+    backoffice-citation_capture_pipeline: $backoffice_citation_capture_pipeline
 
     Fulltext Error Counts:
     'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted.
