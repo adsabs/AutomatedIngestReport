@@ -1,4 +1,5 @@
 
+from builtins import object
 from datetime import datetime, timedelta
 from os import remove
 from shutil import move
@@ -11,25 +12,25 @@ conf = load_config(proj_home='./')
 
 
 # enums used to to generate file names
-class FileType:
+class FileType(object):
     CANONICAL = 'CANONICAL'
     SOLR = 'SOLR'
     FULLTEXT = 'FULLTEXT'
 
 
-class FileAdjective:
+class FileAdjective(object):
     MISSING = 'MISSING'
     DELETED = 'DELETED'
     EXTRA = 'EXTRA'
     NEW = 'NEW'
 
 
-class Date:
+class Date(object):
     TODAY = 1
     YESTERDAY = 2
 
 
-class Filename:
+class Filename(object):
 
     @staticmethod
     def get(_date, _type, adjective=None, msg=None):
@@ -63,6 +64,7 @@ def lines_in_file(filename):
         logger.error('In utils.lines_in_file: %s' % err)
     return lines
 
+
 def lines_in_file_foo(filename):
     """based on https://gist.github.com/zed/0ac760859e614cd03652#file-gistfile1-py-L41
        works on mac, does not work on unix
@@ -91,6 +93,7 @@ def comm(file_in1, file_in2, file_out):
     lines = lines_in_file(file_out)
     return lines
 
+
 def sort(filename):
     """use temp file and unix sort command essentially sort in place"""
 
@@ -101,6 +104,7 @@ def sort(filename):
     if r != 0:
         logger.error('in sort, c command returned {}'.format(c, r))
     remove(tmp_filename)
+
 
 def occurances_in_file(s, filename):
     """return how many times the string s appears in the passed file"""

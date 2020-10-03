@@ -1,5 +1,10 @@
+from __future__ import print_function
+from __future__ import absolute_import
 
 
+from builtins import str
+from builtins import zip
+from builtins import object
 import requests
 import re
 from time import sleep
@@ -15,13 +20,13 @@ import glob
 import csv
 
 # from apiclient.discovery import build
-from utils import Filename, FileType, Date, conf, logger, sort
+from .utils import Filename, FileType, Date, conf, logger, sort
 
 
-class Gather:
+class Gather(object):
     """gather data from various sources (canonical list, solr, etc.)
-
-    ads files are placed in a while known directory with a name based on date and their contents"""
+    ads files are placed in a while known directory with a name based on date
+    and their contents"""
 
     def __init__(self, date=Date.TODAY):
         """use passed date as prefix in filenames"""
@@ -40,7 +45,6 @@ class Gather:
         self.solr_bibcodes_finish(jobid)
         self.fulltext()
 
-
     def canonical(self):
         """create local copy of canonical bibcodes"""
         c = conf['CANONICAL_FILE']
@@ -52,7 +56,6 @@ class Gather:
     def solr(self):
         self.solr_admin()
         self.solr_bibcodes()
-
 
     def solr_admin(self):
         """obtain admin oriented data from solr instance """
@@ -70,7 +73,6 @@ class Gather:
     def solr_bibcodes(self):
         jobid = self.solr_bibcodes_start()
         self.solr_bibcodes_finish(jobid)
-
 
     def solr_bibcodes_start(self):
         """use solr batch api to get list of all bibcode it has
@@ -142,7 +144,7 @@ class Gather:
                 f.write(bibs)
             sort(filename)
         except Exception as err:
-            logger.error('In gather.solr_bibcodes_finish: %s' %s)
+            logger.error('In gather.solr_bibcodes_finish: %s' % s)
 
         return True
 
@@ -152,9 +154,9 @@ class Gather:
         es = elasticsearch2.Elasticsearch(u)
         # first get total errors for last 24 hours
         s = Search(using=es, index='_all') \
-                    .query('match', **{'@message': 'error'}) \
-                    .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
-                    .count()
+                   .query('match', **{'@message': 'error'}) \
+                   .filter('range', **{'@timestamp': {'gte': 'now-24h',
+                                                      'lt': 'now'}}).count()
         errors = OrderedDict()  # using ordered dict to control order in report
         errors['total'] = s
         # now get errors individually for each pipeline
@@ -188,7 +190,7 @@ class Gather:
             if count == 0:
                 passed_tests.append('{}, message {}\n'.format(pipeline, message))
             else:
-                failed_tests.append('Unexpected error in {}: {} occured {} times' \
+                failed_tests.append('Unexpected error in {}: {} occured {} times'
                                      .format(pipeline, message, count))
         if len(failed_tests):
             errors['failed_tests'] = failed_tests
@@ -197,7 +199,6 @@ class Gather:
         print(errors)
         self.values['failed_tests'].extend(failed_tests)
         self.values['passed_tests'].extend(passed_tests)
-
 
     def classic(self):
         """are there errors from the classic pipeline"""
@@ -271,7 +272,7 @@ class Gather:
         now = datetime.strftime(datetime.now(), "%Y-%m-%d")
 
         # loop through types of errors messages
-        for err_msg in errors.keys():
+        for err_msg in list(errors.keys()):
 
             bibs = []
             dirs = []
@@ -311,11 +312,13 @@ class Gather:
                         dirs.append(r[loc_dir])
 
             # create filename based on error message and date
-            fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None, msg="_" + ("_".join(err_msg.split())).replace('-', '_') + "_")
+            fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None,
+                                 msg="_" + ("_".join(err_msg.split()))
+                                 .replace('-', '_') + "_")
 
             # write bibcodes and directories for each error type to file
             with open(fname, 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
-                writer.writerows(zip(bibs, dirs))
+                writer.writerows(list(zip(bibs, dirs)))
 
             sort(fname)
