@@ -63,6 +63,7 @@ def lines_in_file(filename):
         logger.error('In utils.lines_in_file: %s' % err)
     return lines
 
+
 def lines_in_file_foo(filename):
     """based on https://gist.github.com/zed/0ac760859e614cd03652#file-gistfile1-py-L41
        works on mac, does not work on unix
@@ -91,6 +92,7 @@ def comm(file_in1, file_in2, file_out):
     lines = lines_in_file(file_out)
     return lines
 
+
 def sort(filename):
     """use temp file and unix sort command essentially sort in place"""
 
@@ -101,6 +103,7 @@ def sort(filename):
     if r != 0:
         logger.error('in sort, c command returned {}'.format(c, r))
     remove(tmp_filename)
+
 
 def occurances_in_file(s, filename):
     """return how many times the string s appears in the passed file"""

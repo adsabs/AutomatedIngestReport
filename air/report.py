@@ -6,8 +6,8 @@ import pytz
 import urllib3
 import requests
 
-#from apiclient.discovery import build
-#from oauth2client.file import Storage
+# from apiclient.discovery import build
+# from oauth2client.file import Storage
 from string import Template
 from utils import Date
 
@@ -23,7 +23,7 @@ class Report:
     """
 
     def __init__(self, gather, compute, date=Date.TODAY):
-        #service = build('drive', 'v3', developerKey='')
+        # service = build('drive', 'v3', developerKey='')
         self.gather = gather
         self.compute = compute
 
@@ -56,7 +56,7 @@ class Report:
         """return an html representation of the report"""
 
     def query_Kibana(self, query='"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""',
-                     n_days=1,rows=1):
+                     n_days=1, rows=1):
         """
         Function to query Kibana for a given input query and return the response.
 
@@ -88,15 +88,15 @@ class Report:
 
         q_query = '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":'+query+'}}, '
 
-        q_range = '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time,end_time)
+        q_range = '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time, end_time)
 
         q_doc = '"docvalue_fields":["@timestamp"]}\n\n'
 
         data = (q_rows + q_query + q_range + q_doc)
 
-        #data = ('{"index":["cwl-*"]}\n{"size":%.0f,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' %(rows) + 
+        # data = ('{"index":["cwl-*"]}\n{"size":%.0f,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' %(rows) +
         #    '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":'+query+'}}, ' +
-        #    '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time,end_time) + 
+        #    '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time,end_time) +
         #    '"docvalue_fields":["@timestamp"]}\n\n')
 
         header = {'origin': 'https://pipeline-kibana.kube.adslabs.org',
@@ -117,9 +117,9 @@ class Report:
             return results
         else:
             # logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
-            print('For query %s, there was a network problem: %s\n' % (query,resp))
+            print('For query %s, there was a network problem: %s\n' %
+                  (query, resp))
             return None
-
 
     def create(self):
         pass
@@ -164,7 +164,6 @@ class Report:
 
 
     '''
-
 
     _html_template = '''
     <html>
