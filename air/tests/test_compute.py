@@ -1,4 +1,5 @@
 
+from past.builtins import cmp
 import unittest
 from datetime import datetime, timedelta
 from filecmp import cmp
@@ -12,9 +13,11 @@ class TestCompute(unittest.TestCase):
     def setUp(self):
         unittest.TestCase.setUp(self)
         conf['AIR_DATA_DIRECTORY'] = 'air/tests/stubdata/'
+        return
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
+        return
 
     def test_compute(self):
         """ run compute and compare generated files to known good files
@@ -46,3 +49,5 @@ class TestCompute(unittest.TestCase):
         filename = Filename.get(end, FileType.SOLR, FileAdjective.DELETED)
         filegood = filename.replace('.txt', '.good')
         self.assertTrue(cmp(filegood, filename), 'solr deleted')
+
+        return

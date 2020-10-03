@@ -1,3 +1,4 @@
+from __future__ import print_function
 import argparse
 from air.gather import Gather
 from air.compute import Compute
@@ -45,7 +46,7 @@ def main():
             c.fulltext()
             print("computed canonical and bibcodes")
         except Exception as err:
-            print("RUN error on c.fulltext():", err)
+            print(("RUN error on c.fulltext():", err))
 
     r = Report(g, c)
     try:

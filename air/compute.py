@@ -1,8 +1,10 @@
+from __future__ import absolute_import
 
-from utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
+from builtins import object
+from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
 
 
-class Compute:
+class Compute(object):
     """compute missing bibcodes and other values"""
 
     def __init__(self, start=Date.YESTERDAY, end=Date.TODAY):
@@ -45,7 +47,7 @@ class Compute:
         """Compute the new and deleted bibcodes for each type of error from
         todays list of bibcodes compared with yesterdays list. Results stored
         in variables that are then used in report.py."""
-        for e in conf['FULLTEXT_ERRORS'].keys():
+        for e in list(conf['FULLTEXT_ERRORS'].keys()):
 
             err_msg = "_" + ("_".join(e.split())).replace('-', '_')
 

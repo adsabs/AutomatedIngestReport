@@ -1,4 +1,8 @@
+from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import str
+from builtins import object
 from dateutil.tz import tzutc
 import datetime
 import time
@@ -9,14 +13,14 @@ import requests
 # from apiclient.discovery import build
 # from oauth2client.file import Storage
 from string import Template
-from utils import Date
+from .utils import Date
 
 import config
 
 # this code is not yet complete
 
 
-class Report:
+class Report(object):
     """create ingest report based on data that has been gathered and computed
 
     Reports (eventually) are google docs, they are created using google's python api

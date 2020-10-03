@@ -1,5 +1,10 @@
+from __future__ import print_function
+from __future__ import absolute_import
 
 
+from builtins import str
+from builtins import zip
+from builtins import object
 import requests
 import re
 from time import sleep
@@ -15,10 +20,10 @@ import glob
 import csv
 
 # from apiclient.discovery import build
-from utils import Filename, FileType, Date, conf, logger, sort
+from .utils import Filename, FileType, Date, conf, logger, sort
 
 
-class Gather:
+class Gather(object):
     """gather data from various sources (canonical list, solr, etc.)
     ads files are placed in a while known directory with a name based on date
     and their contents"""
@@ -267,7 +272,7 @@ class Gather:
         now = datetime.strftime(datetime.now(), "%Y-%m-%d")
 
         # loop through types of errors messages
-        for err_msg in errors.keys():
+        for err_msg in list(errors.keys()):
 
             bibs = []
             dirs = []
@@ -314,6 +319,6 @@ class Gather:
             # write bibcodes and directories for each error type to file
             with open(fname, 'w') as f:
                 writer = csv.writer(f, delimiter='\t')
-                writer.writerows(zip(bibs, dirs))
+                writer.writerows(list(zip(bibs, dirs)))
 
             sort(fname)

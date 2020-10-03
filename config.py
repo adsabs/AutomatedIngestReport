@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 
 # where to send solr queries, includes core name

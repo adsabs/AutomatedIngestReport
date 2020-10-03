@@ -1,4 +1,5 @@
 
+from builtins import object
 from datetime import datetime, timedelta
 from os import remove
 from shutil import move
@@ -11,25 +12,25 @@ conf = load_config(proj_home='./')
 
 
 # enums used to to generate file names
-class FileType:
+class FileType(object):
     CANONICAL = 'CANONICAL'
     SOLR = 'SOLR'
     FULLTEXT = 'FULLTEXT'
 
 
-class FileAdjective:
+class FileAdjective(object):
     MISSING = 'MISSING'
     DELETED = 'DELETED'
     EXTRA = 'EXTRA'
     NEW = 'NEW'
 
 
-class Date:
+class Date(object):
     TODAY = 1
     YESTERDAY = 2
 
 
-class Filename:
+class Filename(object):
 
     @staticmethod
     def get(_date, _type, adjective=None, msg=None):
