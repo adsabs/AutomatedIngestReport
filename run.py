@@ -30,7 +30,7 @@ def main():
         except:
             pass
         else:
-            mesg = 'Number of myADS emails: %s' % (count)
+            mesg = '\n\nNumber of myADS emails: %s\n\n' % (count)
             print(mesg)
 
     if args.gather:
