@@ -14,7 +14,7 @@ SQLALCHEMY_URL_NONBIB = 'postgres://data_pipeline:data_pipeline@%s:15432/data_pi
 
 # home of data files (e.g. a copy of today's canonical bibcodes)
 # new files written here, expected files read from here
-AIR_DATA_DIRECTORY = './data/'
+AIR_DATA_DIRECTORY = '/proj/ads_abstracts/daily_reports/'
 
 FULLTEXT_LOGS = '/proj/ads/articles/fulltext/logs/'
 
