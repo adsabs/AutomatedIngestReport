@@ -22,6 +22,7 @@ def main():
     # get Kibana output
     if args.kibana:
         # query for the number of myADS emails sent
+        k = Report(g, c)
         myads_query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""'
         result = k.query_Kibana(query=myads_query, n_days=0, rows=5)
         try:
