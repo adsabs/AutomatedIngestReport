@@ -5,7 +5,7 @@ import os
 SOLR_URL = 'http://localhost:9983/solr/collection1/'
 
 # the current list of canonical bibcodes
-CANONICAL_FILE = '/proj/ads/abstracts/config/bibcodes.list.can'
+CANONICAL_FILE = '/proj/ads_abstracts/config/bibcodes.list.can'
 
 ELASTICSEARCH_URL = 'https://search-pipeline-d6gsitdlgp2dh25slmlrcwjtse.us-east-1.es.amazonaws.com'
 
@@ -16,7 +16,7 @@ SQLALCHEMY_URL_NONBIB = 'postgres://data_pipeline:data_pipeline@%s:15432/data_pi
 # new files written here, expected files read from here
 AIR_DATA_DIRECTORY = '/proj/ads_abstracts/daily_reports/'
 
-FULLTEXT_LOGS = '/proj/ads/articles/fulltext/logs/'
+FULLTEXT_LOGS = '/proj/ads_articles/fulltext/logs/'
 
 # in double quotes to force exact phrase match during gather
 

@@ -30,7 +30,18 @@ def main():
         except Exception as err:
             print('Kibana query for myADS emails failed: %s' % err)
         else:
-            mesg = '\n\nNumber of myADS emails: %s\n\n' % (count)
+            mesg = '\nNumber of myADS emails: %s\n' % (count)
+            print(mesg)
+
+        k = Report(g, c)
+        mstr_rslv_query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""'
+        result = k.query_Kibana(query=mstr_rslv_query, n_days=0, rows=5)
+        try:
+            count = result['responses'][0]['hits']['total']
+        except Exception as err:
+            print('Kibana query for Master/Resolver errors failed: %s' % err)
+        else:
+            mesg = 'Number of Master/Resolver errors: %s\n\n' % (count)
             print(mesg)
 
     if args.gather:
