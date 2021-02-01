@@ -87,6 +87,9 @@ def lines_in_file_foo(filename):
 
 def comm(file_in1, file_in2, file_out):
     """run unix comm command to generated what's in the first file but not the second"""
+    for f in [file_in1,file_in2]:
+        sorter = 'sort ' + f + ' -o ' + f
+        sr = subprocess.call(sorter, shell=True)
 
     c = 'comm' + ' -2 -3 ' + file_in1 + ' ' + file_in2 + ' > ' + file_out
     r = subprocess.call(c, shell=True)

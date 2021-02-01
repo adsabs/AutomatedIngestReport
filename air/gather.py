@@ -317,13 +317,16 @@ class Gather(object):
                 x = Popen(args, stdout=PIPE, stderr=STDOUT)
 
                 # get bibcodes/directories from todays errors
-                resp = x.communicate()[0].split("\n")
+                try:
+                    resp = x.communicate()[0].split("\n")
 
-                for r in resp:
-                    if r:
-                        r = r.split("'")
-                        bibs.append(r[loc_bib])
-                        dirs.append(r[loc_dir])
+                    for r in resp:
+                        if r:
+                            r = r.split("'")
+                            bibs.append(r[loc_bib])
+                            dirs.append(r[loc_dir])
+                except Exception as err:
+                    logger.warn("Error from gather.fulltext(): %s " % err)
 
             # create filename based on error message and date
             fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None,
