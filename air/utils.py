@@ -7,8 +7,10 @@ import subprocess
 
 from adsputils import setup_logging, load_config
 
-logger = setup_logging('AutomatedIngestReport')
 conf = load_config(proj_home='./')
+logger = setup_logging('AutomatedIngestReport',
+                       level=config.get('LOGGING_LEVEL', 'INFO'),
+                       attach_stdout=config.get('LOG_STDOUT', False))
 
 
 # enums used to to generate file names

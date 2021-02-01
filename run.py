@@ -45,25 +45,34 @@ def main():
 
     if args.gather:
         g = Gather()
-        g.all()
-        print('gathered list of bibcodes in canonical and bibcodes in solr')
+        try:
+            g.all()
+            print('gathered list of bibcodes in canonical and bibcodes in solr')
+        except Exception as err:
+            print('Error in Gather.all(): %s' % err)
 
     if args.compute:
         c = Compute()
-        c.canonical()
-        c.solr()
+        try:
+            c.canonical()
+        except Exception as err:
+            print('Error in Compute.canonical(): %s' % err)
+        try:
+            c.solr()
+        except Exception as err:
+            print('Error in Compute.solr(): %s' % err)
         try:
             c.fulltext()
             print("computed canonical and bibcodes")
         except Exception as err:
-            print(("RUN error on c.fulltext():", err))
+            print('Error in Compute.fulltext(): %s' % err)
 
-    r = Report(g, c)
     try:
+        r = Report(g, c)
         print(r._text())
     except Exception as err:
-        print('No db actions requested.')
-
+        print('Exception in writing report: %s' % err)
+        # print('No db actions requested.')
 
 if __name__ == '__main__':
     main()

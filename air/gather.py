@@ -38,8 +38,12 @@ class Gather(object):
     def all(self):
         self.solr_admin()
         jobid = self.solr_bibcodes_start()
+        logger.info('Solr bibcodes JobID: %s' % jobid)
         self.canonical()
-        self.elasticsearch()
+        try:
+            self.elasticsearch()
+        except Exception as err:
+            logger.debug('Error from gather.elasticsearch(): %s' % err)
         self.postgres()
         self.classic()
         self.solr_bibcodes_finish(jobid)
@@ -86,10 +90,13 @@ class Gather(object):
 
         logger.info('sending initial batch query to solr at %s', url)
         rQuery = requests.get(url + query)
+        logger.info('in solr_bibcodes_start: requests.get returned rQuery object')
         if rQuery.status_code != 200:
             logger.error('initial batch solr query failed, status: %s, text: %s',
                          rQuery.status_code, rQuery.text)
             return False
+        else:
+            logger.info('solr bibcodes: rQuery returned status=200')
         j = rQuery.json()
         jobid = j['jobid']
         logger.info('sending solr start batch command')
@@ -98,6 +105,8 @@ class Gather(object):
             logger.error('solr start batch processing failed, status %s, text: %s',
                          rStart.status_code, rStart.text)
             return False
+        else:
+            logger.info('solr bibcodes: rStart returned status=200')
 
         return jobid
 
@@ -125,6 +134,11 @@ class Gather(object):
                 logger.error('solr batch process taking too long, seconds: %s;',
                              (datetime.now() - startTime).total_seconds())
                 return False
+            else:
+                elapsed = (datetime.now() - startTime).total_seconds()
+                isec = int(0.5 + (elapsed/600.))
+                if isec % 600 == 0:
+                    logger.debug('solr batch check in: still running, %s sec' % elapsed)
 
         logger.info('solr batch completed in %s seconds, now fetching bibcodes',
                     (datetime.now() - startTime).total_seconds())
