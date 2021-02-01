@@ -6,4 +6,5 @@ elasticsearch2==2.5.0
 future==0.18.2
 importlib_metadata==1.6.0
 ipaddress==1.0.23
-psycopg2==2.8.3
+#psycopg2==2.8.3
+psycopg2-binary
