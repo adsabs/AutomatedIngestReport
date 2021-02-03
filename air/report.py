@@ -13,7 +13,7 @@ import requests
 # from apiclient.discovery import build
 # from oauth2client.file import Storage
 from string import Template
-from .utils import Date
+from .utils import Date, logger
 
 import config
 
@@ -120,10 +120,23 @@ class Report(object):
             results = resp.json()
             return results
         else:
-            # logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
-            print('For query %s, there was a network problem: %s\n' %
+            logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
+            # print('For query %s, there was a network problem: %s\n' %
                   (query, resp))
             return None
+
+    def kibana_counter(self):
+        for k, v in config.KIBANA_QUERIES:
+            try:
+                result = self.query_Kibana(query=k,
+                                           mesg=mesg,
+                                           n_days=0,
+                                           rows=5)
+                count = result['responses'][0]['hits']['total']
+                logger.info(v % count)
+            except Exception as err:
+                logger.warning('Unable to execute kibana_counter: %s' % err)
+        return
 
     def create(self):
         pass
