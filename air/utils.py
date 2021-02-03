@@ -7,7 +7,7 @@ import subprocess
 
 from adsputils import setup_logging, load_config
 
-conf = load_config(proj_home='./')
+conf = load_config(proj_home='../')
 logger = setup_logging('AutomatedIngestReport',
                        level=conf.get('LOGGING_LEVEL', 'INFO'),
                        attach_stdout=conf.get('LOG_STDOUT', False))

@@ -38,12 +38,12 @@ class Gather(object):
     def all(self):
         self.solr_admin()
         jobid = self.solr_bibcodes_start()
-        logger.info('Solr bibcodes JobID: %s' % jobid)
+        logger.debug('Solr bibcodes JobID: %s' % jobid)
         self.canonical()
-        try:
-            self.elasticsearch()
-        except Exception as err:
-            logger.debug('Error from gather.elasticsearch(): %s' % err)
+        # try:
+            # self.elasticsearch()
+        # except Exception as err:
+            # logger.debug('Error from gather.elasticsearch(): %s' % err)
         self.postgres()
         self.classic()
         self.solr_bibcodes_finish(jobid)
@@ -53,7 +53,7 @@ class Gather(object):
         """create local copy of canonical bibcodes"""
         c = conf['CANONICAL_FILE']
         air = Filename.get(self.date, FileType.CANONICAL)
-        logger.info('making local copy of canonical bibcodes file, from %s to %s', c, air)
+        logger.debug('making local copy of canonical bibcodes file, from %s to %s', c, air)
         shutil.copy(c, air)
         sort(air)
 
@@ -129,7 +129,7 @@ class Gather(object):
             if j['job-status'] == 'finished':
                 finished = True
             else:
-                sleep(10)
+                sleep(60)
             if (datetime.now() - startTime).total_seconds() > 3600 * 3:
                 logger.error('solr batch process taking too long, seconds: %s;',
                              (datetime.now() - startTime).total_seconds())
@@ -210,7 +210,7 @@ class Gather(object):
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
             errors['passed_tests'] = passed_tests
-        print(errors)
+        logger.info(errors)
         self.values['failed_tests'].extend(failed_tests)
         self.values['passed_tests'].extend(passed_tests)
 
@@ -227,14 +227,14 @@ class Gather(object):
         if x.returncode == 1:
             # no errors found in log files
             msg = 'passed arxiv check: file {}'.format(f)
-            print(msg)
+            logger.info(msg)
             self.values['passed_tests'].extend(msg)
         else:
             # return code = 0 if grep matched
             # return code = 2 if grep encounted an error
-            msg = 'failed arxiv check: file {}, error {}'.format(f, resp)
+            # msg = 'failed arxiv check: file {}, error {}'.format(f, resp)
             msg = 'failed arxiv check: file {}, error = \n{}'.format(f, resp)
-            print(msg)
+            logger.info(msg)
             self.values['failed_tests'].extend(msg)
 
     def postgres(self):
@@ -242,7 +242,7 @@ class Gather(object):
         engine = create_engine(conf['SQLALCHEMY_URL_NONBIB'], echo=False)
         connection = engine.connect()
         self.values['nonbib_ned_row_count'] = self.exec_sql(connection, "select count(*) from nonbib.ned;")
-        print('from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count']))
+        logger.info('from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count']))
         connection.close()
 
         engine = create_engine(conf['SQLALCHEMY_URL_MASTER'], echo=False)
@@ -266,7 +266,7 @@ class Gather(object):
                                                         "select count(*) from records where nonbib_data_updated >= NOW() - '1 day'::INTERVAL;")
 
         connection.close()
-        print('from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count']))
+        logger.info('from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count']))
 
     def exec_sql(self, connection, query):
         result = connection.execute(query)

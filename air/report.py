@@ -126,10 +126,9 @@ class Report(object):
             return None
 
     def kibana_counter(self):
-        for k, v in config.KIBANA_QUERIES:
+        for k, v in config.KIBANA_QUERIES.items():
             try:
                 result = self.query_Kibana(query=k,
-                                           mesg=mesg,
                                            n_days=0,
                                            rows=5)
                 count = result['responses'][0]['hits']['total']
