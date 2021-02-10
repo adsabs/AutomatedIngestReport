@@ -122,7 +122,7 @@ class Report(object):
         else:
             logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
             # print('For query %s, there was a network problem: %s\n' %
-                  (query, resp))
+                  # (query, resp))
             return None
 
     def kibana_counter(self):

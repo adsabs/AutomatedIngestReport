@@ -88,25 +88,25 @@ class Gather(object):
         # query = 'batch?command=dump-docs-by-query&q=bibcode:2003ASPC..295..361M&fl=bibcode&wt=json'
         start = 'batch?command=start&wt=json'
 
-        logger.info('sending initial batch query to solr at %s', url)
+        logger.debug('sending initial batch query to solr at %s', url)
         rQuery = requests.get(url + query)
-        logger.info('in solr_bibcodes_start: requests.get returned rQuery object')
+        logger.debug('in solr_bibcodes_start: requests.get returned rQuery object')
         if rQuery.status_code != 200:
             logger.error('initial batch solr query failed, status: %s, text: %s',
                          rQuery.status_code, rQuery.text)
             return False
         else:
-            logger.info('solr bibcodes: rQuery returned status=200')
+            logger.debug('solr bibcodes: rQuery returned status=200')
         j = rQuery.json()
         jobid = j['jobid']
-        logger.info('sending solr start batch command')
+        logger.debug('sending solr start batch command')
         rStart = requests.get(url + start)
         if rStart.status_code != 200:
             logger.error('solr start batch processing failed, status %s, text: %s',
                          rStart.status_code, rStart.text)
             return False
         else:
-            logger.info('solr bibcodes: rStart returned status=200')
+            logger.debug('solr bibcodes: rStart returned status=200')
 
         return jobid
 
@@ -118,7 +118,7 @@ class Gather(object):
         # now we wait for solr to process batch query
         finished = False
         startTime = datetime.now()
-        logger.info('Starting Solr bibcode fetch at %s' % startTime.strftime('%c'))
+        logger.debug('Starting Solr bibcode fetch at %s' % startTime.strftime('%c'))
         while not finished:
             rStatus = requests.get(url + status + jobid)
             if rStatus.status_code != 200:
@@ -140,7 +140,7 @@ class Gather(object):
                 if isec % 600 == 0:
                     logger.debug('solr batch check in: still running, %s sec' % elapsed)
 
-        logger.info('solr batch completed in %s seconds, now fetching bibcodes',
+        logger.debug('solr batch completed in %s seconds, now fetching bibcodes',
                     (datetime.now() - startTime).total_seconds())
         rResults = requests.get(url + get_results + jobid)
         if rResults.status_code != 200:
@@ -326,7 +326,7 @@ class Gather(object):
                             bibs.append(r[loc_bib])
                             dirs.append(r[loc_dir])
                 except Exception as err:
-                    logger.warn("Error from gather.fulltext(): %s " % err)
+                    logger.debug("Error from gather.fulltext(): %s " % err)
 
             # create filename based on error message and date
             fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None,
