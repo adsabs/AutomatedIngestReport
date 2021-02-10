@@ -64,15 +64,38 @@ class Gather(object):
     def solr_admin(self):
         """obtain admin oriented data from solr instance """
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
+        # Solr 6 mbeans call
         query = 'admin/mbeans?stats=true&cat=UPDATEHANDLER&wt=json'
         rQuery = requests.get(url + query)
+        # Default values if solr.mbeans query fails...
+        solr_cumulative_adds = -1
+        solr_cumulative_errors = -1
+        solr_errors = -1
         if rQuery.status_code != 200:
             logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
         else:
             j = rQuery.json()
-            self.values['solr_cumulative_adds'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
-            self.values['solr_cumulative_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
-            self.values['solr_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            try:
+                solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
+                solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
+                solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            except Exception as err_solr6:
+                #redo query for Solr 7 mbeans
+                query = 'admin/mbeans?stats=true&cat=UPDATE&wt=json'
+                rQuery = requests.get(url + query)
+                if rQuery.status_code != 200:
+                    logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
+                else:
+                    j = rQuery.json()
+                    try:
+                        solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.cumulativeAdds.count']
+                        solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.cumulativeErrors.count']
+                        solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.errors']
+                    except Exception as error:
+                        logger.error('Solr mbeans stats are not in Solr6 or 7 format: %s' % error)
+        self.values['solr_cumulative_adds'] = solr_cumulative_adds
+        self.values['solr_cumulative_errors'] = solr_cumulative_errors
+        self.values['solr_errors'] = solr_errors
 
     def solr_bibcodes(self):
         jobid = self.solr_bibcodes_start()
