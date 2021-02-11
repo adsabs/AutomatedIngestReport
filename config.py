@@ -10,7 +10,8 @@ SOLR_URL = 'http://localhost:9983/solr/collection1/'
 # the current list of canonical bibcodes
 CANONICAL_FILE = '/proj/ads_abstracts/config/bibcodes.list.can'
 
-ELASTICSEARCH_URL = 'https://search-pipeline-d6gsitdlgp2dh25slmlrcwjtse.us-east-1.es.amazonaws.com'
+# ELASTICSEARCH_URL = 'https://search-pipeline-d6gsitdlgp2dh25slmlrcwjtse.us-east-1.es.amazonaws.com'
+ELASTICSEARCH_URL = 'https://pipeline-kibana.kube.adslabs.org'
 
 SQLALCHEMY_URL_MASTER = 'postgres://master_pipeline:master_pipeline@%s:15432/master_pipeline' % 'adsnest.cfa.harvard.edu'
 SQLALCHEMY_URL_NONBIB = 'postgres://data_pipeline:data_pipeline@%s:15432/data_pipeline' % 'adsnest.cfa.harvard.edu'
