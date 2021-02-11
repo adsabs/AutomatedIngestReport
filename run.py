@@ -22,49 +22,42 @@ def main():
     # get Kibana output
     if args.kibana:
         # query for the number of myADS emails sent
-        k = Report(g, c)
-        myads_query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""'
-        result = k.query_Kibana(query=myads_query, n_days=0, rows=5)
         try:
-            count = result['responses'][0]['hits']['total']
+            k = Report(g, c)
+            k.kibana_counter()
         except Exception as err:
-            print('Kibana query for myADS emails failed: %s' % err)
-        else:
-            mesg = '\nNumber of myADS emails: %s\n' % (count)
-            print(mesg)
-
-        k = Report(g, c)
-        mstr_rslv_query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""'
-        result = k.query_Kibana(query=mstr_rslv_query, n_days=0, rows=5)
-        try:
-            count = result['responses'][0]['hits']['total']
-        except Exception as err:
-            print('Kibana query for Master/Resolver errors failed: %s' % err)
-        else:
-            mesg = 'Number of Master/Resolver errors: %s\n\n' % (count)
-            print(mesg)
+            print('Error in Report.kibana_counter(): %s' % err)
 
     if args.gather:
         g = Gather()
-        g.all()
-        print('gathered list of bibcodes in canonical and bibcodes in solr')
+        try:
+            g.all()
+            print('gathered list of bibcodes in canonical and bibcodes in solr')
+        except Exception as err:
+            print('Error in Gather.all(): %s' % err)
 
     if args.compute:
         c = Compute()
-        c.canonical()
-        c.solr()
+        try:
+            c.canonical()
+        except Exception as err:
+            print('Error in Compute.canonical(): %s' % err)
+        try:
+            c.solr()
+        except Exception as err:
+            print('Error in Compute.solr(): %s' % err)
         try:
             c.fulltext()
             print("computed canonical and bibcodes")
         except Exception as err:
-            print(("RUN error on c.fulltext():", err))
+            print('Error in Compute.fulltext(): %s' % err)
 
-    r = Report(g, c)
     try:
+        r = Report(g, c)
         print(r._text())
     except Exception as err:
-        print('No db actions requested.')
-
+        print('Exception in writing report: %s' % err)
+        # print('No db actions requested.')
 
 if __name__ == '__main__':
     main()

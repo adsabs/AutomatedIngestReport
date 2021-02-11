@@ -37,120 +37,97 @@ class Gather(object):
 
     def all(self):
         self.solr_admin()
-        jobid = self.solr_bibcodes_start()
         self.canonical()
-        self.elasticsearch()
         self.postgres()
         self.classic()
-        self.solr_bibcodes_finish(jobid)
+        self.solr_bibcodes_list()
         self.fulltext()
 
     def canonical(self):
         """create local copy of canonical bibcodes"""
-        c = conf['CANONICAL_FILE']
+        c = conf.get('CANONICAL_FILE', '/proj/ads_abstracts/config/bibcodes.list.can')
         air = Filename.get(self.date, FileType.CANONICAL)
-        logger.info('making local copy of canonical bibcodes file, from %s to %s', c, air)
+        logger.debug('making local copy of canonical bibcodes file, from %s to %s', c, air)
         shutil.copy(c, air)
         sort(air)
-
-    def solr(self):
-        self.solr_admin()
-        self.solr_bibcodes()
 
     def solr_admin(self):
         """obtain admin oriented data from solr instance """
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
+        # Solr 6 mbeans call
         query = 'admin/mbeans?stats=true&cat=UPDATEHANDLER&wt=json'
         rQuery = requests.get(url + query)
+        # Default values if solr.mbeans query fails...
+        solr_cumulative_adds = -1
+        solr_cumulative_errors = -1
+        solr_errors = -1
         if rQuery.status_code != 200:
             logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
         else:
             j = rQuery.json()
-            self.values['solr_cumulative_adds'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
-            self.values['solr_cumulative_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
-            self.values['solr_errors'] = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            try:
+                solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
+                solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
+                solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
+            except Exception as err_solr6:
+                #redo query for Solr 7 mbeans
+                query = 'admin/mbeans?stats=true&cat=UPDATE&wt=json'
+                rQuery = requests.get(url + query)
+                if rQuery.status_code != 200:
+                    logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
+                else:
+                    j = rQuery.json()
+                    try:
+                        solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.cumulativeAdds.count']
+                        solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.cumulativeErrors.count']
+                        solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.errors']
+                    except Exception as error:
+                        logger.error('Solr mbeans stats are not in Solr6 or 7 format: %s' % error)
+        self.values['solr_cumulative_adds'] = solr_cumulative_adds
+        self.values['solr_cumulative_errors'] = solr_cumulative_errors
+        self.values['solr_errors'] = solr_errors
 
-    def solr_bibcodes(self):
-        jobid = self.solr_bibcodes_start()
-        self.solr_bibcodes_finish(jobid)
 
-    def solr_bibcodes_start(self):
-        """use solr batch api to get list of all bibcode it has
-
-        based on http://labs.adsabs.harvard.edu/trac/adsabs/wiki/SearchEngineBatch#Example4:Dumpdocumetsbyquery"""
+    def solr_bibcodes_list(self):
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
-        query = 'batch?command=dump-docs-by-query&q=*:*&fl=bibcode&wt=json'
-        # use for testing
-        # query = 'batch?command=dump-docs-by-query&q=bibcode:2003ASPC..295..361M&fl=bibcode&wt=json'
-        start = 'batch?command=start&wt=json'
+        query_1 = 'select?fl=bibcode&cursorMark='
+        query_2 = '&q=*%3A*&rows=20000&sort=bibcode%20asc%2Cid%20asc&wt=json'
 
-        logger.info('sending initial batch query to solr at %s', url)
-        rQuery = requests.get(url + query)
-        if rQuery.status_code != 200:
-            logger.error('initial batch solr query failed, status: %s, text: %s',
-                         rQuery.status_code, rQuery.text)
-            return False
-        j = rQuery.json()
-        jobid = j['jobid']
-        logger.info('sending solr start batch command')
-        rStart = requests.get(url + start)
-        if rStart.status_code != 200:
-            logger.error('solr start batch processing failed, status %s, text: %s',
-                         rStart.status_code, rStart.text)
-            return False
-
-        return jobid
-
-    def solr_bibcodes_finish(self, jobid):
-        """get results from earlier submitted job"""
-        url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
-        status = 'batch?command=status&wt=json&jobid='
-        get_results = 'batch?command=get-results&wt=json&jobid='
-        # now we wait for solr to process batch query
-        finished = False
-        startTime = datetime.now()
-        logger.info('Starting Solr bibcode fetch at %s' % startTime.strftime('%c'))
-        while not finished:
-            rStatus = requests.get(url + status + jobid)
-            if rStatus.status_code != 200:
-                logger.error('batch status check failed, status: %s, text: %s',
-                             rStatus.status_code, rStatus.text)
-                return False
-            j = rStatus.json()
-            if j['job-status'] == 'finished':
-                finished = True
-            else:
-                sleep(10)
-            if (datetime.now() - startTime).total_seconds() > 3600 * 3:
-                logger.error('solr batch process taking too long, seconds: %s;',
-                             (datetime.now() - startTime).total_seconds())
-                return False
-
-        logger.info('solr batch completed in %s seconds, now fetching bibcodes',
-                    (datetime.now() - startTime).total_seconds())
-        rResults = requests.get(url + get_results + jobid)
-        if rResults.status_code != 200:
-            logger.error('failed to obtain bibcodes from solr batch query, status: %s, text: %s,',
-                         rResults.status_code, rResults.text)
-            return False
-
-        # finally save bibcodes to file
-        bibs = rResults.text  # all 12 million bibcodes are in this one text field
-        # convert to json-ish text to simple string, response includes newlines between bibcodes
-        bibs = re.sub(r'{"bibcode":"|,|"}', '', bibs)
-        filename = Filename.get(self.date, FileType.SOLR)
+        cursormark_token = '*'
+        last_token = ''
+        bibcode_list = list()
+        bibcode_count = 0
         try:
-            with open(filename, 'w') as f:
-                f.write(bibs)
-            sort(filename)
+            while cursormark_token != last_token:
+                q_url = url + query_1 + cursormark_token + query_2
+                rQuery = requests.get(q_url)
+                if rQuery.status_code != 200:
+                    logger.warn('Can\'t harvest bibcode list from Solr: %s ; %s' % (rQuery.status_code, rQuery.text))
+                else:
+                    last_token = cursormark_token
+                    j = rQuery.json()
+                    cursormark_token = j['nextCursorMark']
+                    resp = j['response']
+                    if bibcode_count == 0:
+                        bibcode_count = resp['numFound']
+                    docs = resp['docs']
+                    bibcode_list.extend(x['bibcode'] for x in docs)
         except Exception as err:
-            logger.error('In gather.solr_bibcodes_finish: %s' % s)
+            logger.warn('Failed to extract bibcodes: %s' % err)
+        else:
+            filename = Filename.get(self.date, FileType.SOLR)
+            try:
+                with open(filename, 'w') as f:
+                    for b in bibcode_list:
+                        f.write(b+'\n')
+                sort(filename)
+            except Exception as err:
+                logger.error('In gather.solr_bibcodes_list: %s' % s)
 
-        return True
 
     def elasticsearch(self):
         """obtain error counts from elasticsearch """
-        u = conf['ELASTICSEARCH_URL']
+        u = conf.get('ELASTICSEARCH_URL', 'https://search-pipeline-d6gsitdlgp2dh25slmlrcwjtse.us-east-1.es.amazonaws.com')
         es = elasticsearch2.Elasticsearch(u)
         # first get total errors for last 24 hours
         s = Search(using=es, index='_all') \
@@ -196,7 +173,7 @@ class Gather(object):
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
             errors['passed_tests'] = passed_tests
-        print(errors)
+        logger.info(errors)
         self.values['failed_tests'].extend(failed_tests)
         self.values['passed_tests'].extend(passed_tests)
 
@@ -213,25 +190,25 @@ class Gather(object):
         if x.returncode == 1:
             # no errors found in log files
             msg = 'passed arxiv check: file {}'.format(f)
-            print(msg)
+            logger.info(msg)
             self.values['passed_tests'].extend(msg)
         else:
             # return code = 0 if grep matched
             # return code = 2 if grep encounted an error
-            msg = 'failed arxiv check: file {}, error {}'.format(f, resp)
+            # msg = 'failed arxiv check: file {}, error {}'.format(f, resp)
             msg = 'failed arxiv check: file {}, error = \n{}'.format(f, resp)
-            print(msg)
+            logger.info(msg)
             self.values['failed_tests'].extend(msg)
 
     def postgres(self):
         # consider building on ADSPipelineUtils
-        engine = create_engine(conf['SQLALCHEMY_URL_NONBIB'], echo=False)
+        engine = create_engine(conf.get('SQLALCHEMY_URL_NONBIB','postgres://data_pipeline:data_pipeline@localhost:15432/data_pipeline'), echo=False)
         connection = engine.connect()
         self.values['nonbib_ned_row_count'] = self.exec_sql(connection, "select count(*) from nonbib.ned;")
-        print('from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count']))
+        logger.info('from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count']))
         connection.close()
 
-        engine = create_engine(conf['SQLALCHEMY_URL_MASTER'], echo=False)
+        engine = create_engine(conf.get('SQLALCHEMY_URL_MASTER', 'postgres://master_pipeline:master_pipeline@localhost:15432/master_pipeline'), echo=False)
         connection = engine.connect()
         self.values['metrics_updated_count'] = self.exec_sql(connection,
                                                         "select count(*) from records where metrics_updated>now() - interval ' 1 day';")
@@ -252,7 +229,7 @@ class Gather(object):
                                                         "select count(*) from records where nonbib_data_updated >= NOW() - '1 day'::INTERVAL;")
 
         connection.close()
-        print('from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count']))
+        logger.info('from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count']))
 
     def exec_sql(self, connection, query):
         result = connection.execute(query)
@@ -266,7 +243,7 @@ class Gather(object):
         lists are written to files that are further processed in compute.py"""
 
         # types of errors with corresponding file names
-        errors = conf['FULLTEXT_ERRORS']
+        errors = conf.get('FULLTEXT_ERRORS','')
 
         # get todays date
         now = datetime.strftime(datetime.now(), "%Y-%m-%d")
@@ -303,13 +280,16 @@ class Gather(object):
                 x = Popen(args, stdout=PIPE, stderr=STDOUT)
 
                 # get bibcodes/directories from todays errors
-                resp = x.communicate()[0].split("\n")
+                try:
+                    resp = x.communicate()[0].split("\n")
 
-                for r in resp:
-                    if r:
-                        r = r.split("'")
-                        bibs.append(r[loc_bib])
-                        dirs.append(r[loc_dir])
+                    for r in resp:
+                        if r:
+                            r = r.split("'")
+                            bibs.append(r[loc_bib])
+                            dirs.append(r[loc_dir])
+                except Exception as err:
+                    logger.debug("Error from gather.fulltext(): %s " % err)
 
             # create filename based on error message and date
             fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None,

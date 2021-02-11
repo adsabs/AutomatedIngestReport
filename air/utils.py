@@ -7,8 +7,10 @@ import subprocess
 
 from adsputils import setup_logging, load_config
 
-logger = setup_logging('AutomatedIngestReport')
 conf = load_config(proj_home='./')
+logger = setup_logging('AutomatedIngestReport',
+                       level=conf.get('LOGGING_LEVEL', 'INFO'),
+                       attach_stdout=conf.get('LOG_STDOUT', False))
 
 
 # enums used to to generate file names
@@ -51,8 +53,8 @@ class Filename(object):
             filename = d + adjective.lower() + _type.capitalize() + '.txt'
         else:
             filename = d + _type.capitalize() + '.txt'
-        dir = conf['AIR_DATA_DIRECTORY']
-        return dir + filename
+        data_dir = conf.get('AIR_DATA_DIRECTORY','./')
+        return data_dir + filename
 
 
 def lines_in_file(filename):
@@ -78,13 +80,16 @@ def lines_in_file_foo(filename):
                            stderr=subprocess.STDOUT
                            ).communicate()[0]
     # out has a value like
-    # ('', ' ', '      1 /Users/SpacemanSteve/code/eclipse/workspace/air/air/tests/stubdata/20000102missingSolr.txt\n')
+    # ('', ' ', '      1 /app/air/tests/stubdata/20000102missingSolr.txt\n')
     count = int(out.partition(' ')[2].lstrip().split(' ')[0])
     return count
 
 
 def comm(file_in1, file_in2, file_out):
     """run unix comm command to generated what's in the first file but not the second"""
+    for f in [file_in1,file_in2]:
+        sorter = 'sort ' + f + ' -o ' + f
+        sr = subprocess.call(sorter, shell=True)
 
     c = 'comm' + ' -2 -3 ' + file_in1 + ' ' + file_in2 + ' > ' + file_out
     r = subprocess.call(c, shell=True)
