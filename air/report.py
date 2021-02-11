@@ -132,7 +132,7 @@ class Report(object):
 
     Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.
 
-    Solr has $solr_cumulative_adds) cumulative adds
+    Solr has $solr_cumulative_adds cumulative adds
     and $solr_errors errors
     and $solr_cumulative_errors cumulative_errors.
 
@@ -145,12 +145,12 @@ class Report(object):
     changes from nonbib: $master_nonbib_changed
 
     Error counts from elasticsearch:
-    backoffice-master_pipeline: $backoffice_master_pipeline
-    backoffice-import_pipeline: $backoffice_import_pipeline
-    backoffice-data_pipeline: $backoffice_data_pipeline
-    backoffice-fulltext_pipeline: $backoffice_fulltext_pipeline
-    backoffice-orcid_pipeline: $backoffice_orcid_pipeline
-    backoffice-citation_capture_pipeline: $backoffice_citation_capture_pipeline
+    backoffice-master_pipeline: $fluent-bit-backoffice_prod_master_pipeline_1
+    backoffice-import_pipeline: $fluent-bit-backoffice_prod_import_pipeline_1
+    backoffice-data_pipeline: $fluent-bit-backoffice_prod_data_pipeline_1
+    backoffice-fulltext_pipeline: $fluent-bit-backoffice_prod_fulltext_pipeline_1
+    backoffice-orcid_pipeline: $fluent-bit-backoffice_prod_orcid_pipeline_1
+    backoffice-citation_capture_pipeline: $fluent-bit-backoffice_prod_citation_capture_pipeline_1
 
     Fulltext Error Counts:
     'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted.
