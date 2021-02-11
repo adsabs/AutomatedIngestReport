@@ -43,10 +43,6 @@ class Gather(object):
         self.classic()
         self.solr_bibcodes_list()
         self.errorsearch()
-        try:
-            self.elasticsearch()
-        except Exception as err:
-            pass
         self.fulltext()
 
     def canonical(self):
