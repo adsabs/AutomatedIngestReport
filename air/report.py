@@ -132,7 +132,7 @@ class Report(object):
 
     Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.
 
-    Solr has $solr_cumulative_adds) cumulative adds
+    Solr has $solr_cumulative_adds cumulative adds
     and $solr_errors errors
     and $solr_cumulative_errors cumulative_errors.
 
