@@ -80,7 +80,7 @@ def lines_in_file_foo(filename):
                            stderr=subprocess.STDOUT
                            ).communicate()[0]
     # out has a value like
-    # ('', ' ', '      1 /Users/SpacemanSteve/code/eclipse/workspace/air/air/tests/stubdata/20000102missingSolr.txt\n')
+    # ('', ' ', '      1 /app/air/tests/stubdata/20000102missingSolr.txt\n')
     count = int(out.partition(' ')[2].lstrip().split(' ')[0])
     return count
 

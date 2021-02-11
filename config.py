@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 
 LOGGING_LEVEL = 'INFO'
-LOG_STDOUT = False
+LOG_STDOUT = True
 
 # where to send solr queries, includes core name
 SOLR_URL = 'http://localhost:9983/solr/collection1/'
