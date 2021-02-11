@@ -41,6 +41,10 @@ class Gather(object):
         self.postgres()
         self.classic()
         self.solr_bibcodes_list()
+        try:
+            self.elasticsearch()
+        except Exception as err:
+            pass
         self.fulltext()
 
     def canonical(self):
@@ -137,32 +141,32 @@ class Gather(object):
         errors = OrderedDict()  # using ordered dict to control order in report
         errors['total'] = s
         # now get errors individually for each pipeline
-        pipelines = ('backoffice-master_pipeline',
-                     'backoffice-import_pipeline',
-                     'backoffice-data_pipeline',
-                     'backoffice-fulltext_pipeline',
-                     'backoffice-orcid_pipeline',
-                     'backoffice-citation_capture_pipeline')
+        pipelines = ('fluent-bit-backoffice_prod_master_pipeline_1',
+                     'fluent-bit-backoffice_prod_import_pipeline_1',
+                     'fluent-bit-backoffice_prod_data_pipeline_1',
+                     'fluent-bit-backoffice_prod_fulltext_pipeline_1',
+                     'fluent-bit-backoffice_prod_orcid_pipeline_1',
+                     'fluent-bit-backoffice_prod_citation_capture_pipeline_1')
         for pipeline in pipelines:
             s = Search(using=es, index='_all') \
                               .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
                               .query('match', **{'@message': 'error'}) \
-                              .filter('match', **{'_type': pipeline}) \
+                              .filter('match', **{'@log_stream': pipeline}) \
                               .count()
             self.values[pipeline] = s
-        self.values['backoffice-fulltext_pipeline'] = '123'
+        self.values['fluent-bit-backoffice_fulltext_pipeline_1'] = '123'
         # next, check on specific errors that should have been fixed
         # message must be in double quotes to force exact phrase match
-        tests = (('backoffice-master_pipeline', '"too many records to add to db"'),
-                 ('backoffice-fulltext_pipeline', '"is linked to a non-existent file"'),
-                 ('backoffice-nonbib_pipeline', '"Unbalanced Parentheses"'))
+        tests = (('fluent-bit-backoffice_prod_master_pipeline_1', '"too many records to add to db"'),
+                 ('fluent-bit-backoffice_prod_fulltext_pipeline_1', '"is linked to a non-existent file"'),
+                 ('fluent-bit-backoffice_prod_nonbib_pipeline_1', '"Unbalanced Parentheses"'))
         passed_tests = []
         failed_tests = []
         for pipeline, message in tests:
             count = Search(using=es, index='_all') \
                               .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
                               .query('query_string', query=message) \
-                              .filter('match', **{'_type': pipeline}) \
+                              .filter('match', **{'@log_stream': pipeline}) \
                               .count()
             if count == 0:
                 passed_tests.append('{}, message {}\n'.format(pipeline, message))
