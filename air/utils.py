@@ -7,7 +7,7 @@ import subprocess
 
 from adsputils import setup_logging, load_config
 
-conf = load_config(proj_home='../')
+conf = load_config(proj_home='./')
 logger = setup_logging('AutomatedIngestReport',
                        level=conf.get('LOGGING_LEVEL', 'INFO'),
                        attach_stdout=conf.get('LOG_STDOUT', False))
@@ -53,8 +53,8 @@ class Filename(object):
             filename = d + adjective.lower() + _type.capitalize() + '.txt'
         else:
             filename = d + _type.capitalize() + '.txt'
-        dir = conf['AIR_DATA_DIRECTORY']
-        return dir + filename
+        data_dir = conf.get('AIR_DATA_DIRECTORY','./')
+        return data_dir + filename
 
 
 def lines_in_file(filename):

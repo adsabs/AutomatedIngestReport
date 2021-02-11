@@ -13,9 +13,7 @@ import requests
 # from apiclient.discovery import build
 # from oauth2client.file import Storage
 from string import Template
-from .utils import Date, logger
-
-import config
+from .utils import Date, conf, logger
 
 # this code is not yet complete
 
@@ -72,9 +70,6 @@ class Report(object):
         :return: JSON results
         """
 
-        # config = {}
-        # config.update(load_config())
-
         # get start and end timestamps (in milliseconds since 1970 epoch)
         now = datetime.datetime.now(tzutc())
         epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
@@ -98,14 +93,8 @@ class Report(object):
 
         data = (q_rows + q_query + q_range + q_doc)
 
-        # data = ('{"index":["cwl-*"]}\n{"size":%.0f,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' %(rows) +
-        #    '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":'+query+'}}, ' +
-        #    '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time,end_time) +
-        #    '"docvalue_fields":["@timestamp"]}\n\n')
-
         header = {'origin': 'https://pipeline-kibana.kube.adslabs.org',
-                  'authorization': 'Basic ' + config.KIBANA_TOKEN,
-                  # 'authorization': 'Basic ' + config['KIBANA_TOKEN'],
+                  'authorization': 'Basic ' + conf.get('KIBANA_TOKEN',''),
                   'content-type': 'application/x-ndjson',
                   'kbn-version': '5.5.2'}
 
@@ -121,12 +110,10 @@ class Report(object):
             return results
         else:
             logger.warn('For query {}, there was a network problem: {0}\n'.format(query,resp))
-            # print('For query %s, there was a network problem: %s\n' %
-                  # (query, resp))
             return None
 
     def kibana_counter(self):
-        for k, v in config.KIBANA_QUERIES.items():
+        for k, v in conf.get('KIBANA_QUERIES',dict()).items():
             try:
                 result = self.query_Kibana(query=k,
                                            n_days=0,
