@@ -41,7 +41,7 @@ class Gather(object):
         self.canonical()
         self.postgres()
         self.classic()
-        self.solr_bibcodes_list()
+        # self.solr_bibcodes_list()
         self.errorsearch()
         self.fulltext()
 
@@ -136,9 +136,12 @@ class Gather(object):
             logstream = 'fluent-bit-backoffice_prod_' + p + '_pipeline_1'
             query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
             result = r.query_Kibana(query=query, n_days=1, rows=20000)
-            count = result['responses'][0]['hits']['total']
-            self.values[logstream] = count
-
+            print('THIS IS THE RESULT SET:', result)
+            try:
+                count = result['responses'][0]['hits']['total']
+                self.values[logstream] = count
+            except Exception as err:
+                logger.warn('Error finding errors! %s' % err)
 
         # self.values['fluent-bit-backoffice_fulltext_pipeline_1'] = '123'
         # next, check on specific errors that should have been fixed
@@ -150,12 +153,15 @@ class Gather(object):
         failed_tests = []
         for logstream, message in tests:
             query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"' + message + '\\""'
-            result = r.query_Kibana(query=query, n_days=1, rows=20000)
-            count = result['responses'][0]['hits']['total']
-            if count == 0:
-                passed_tests.append('%s, message %s\n' % (logstream, message))
-            else:
-                failed_tests.append('Unexpected error in %s: %s occured %s times' % (logstream, message, count))
+            try:
+                result = r.query_Kibana(query=query, n_days=1, rows=20000)
+                count = result['responses'][0]['hits']['total']
+                if count == 0:
+                    passed_tests.append('%s, message %s\n' % (logstream, message))
+                else:
+                    failed_tests.append('Unexpected error in %s: %s occured %s times' % (logstream, message, count))
+            except Exception as err:
+                logger.warn('Error finding errors! %s' % err
         if len(failed_tests):
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
@@ -276,7 +282,7 @@ class Gather(object):
                             bibs.append(r[loc_bib])
                             dirs.append(r[loc_dir])
                 except Exception as err:
-                    logger.debug("Error from gather.fulltext(): %s " % err)
+                    logger.warning("Error from gather.fulltext(): %s " % err)
 
             # create filename based on error message and date
             fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None,
