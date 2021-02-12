@@ -41,9 +41,12 @@ class Gather(object):
         self.canonical()
         self.postgres()
         self.classic()
-        # self.solr_bibcodes_list()
-        self.errorsearch()
-        self.fulltext()
+        self.solr_bibcodes_list()
+        try:
+            self.errorsearch()
+            self.fulltext()
+        except Exception as err:
+            logger.info('Problem with error searching: %s' %err)
 
     def canonical(self):
         """create local copy of canonical bibcodes"""
@@ -136,10 +139,10 @@ class Gather(object):
             logstream = 'fluent-bit-backoffice_prod_' + p + '_pipeline_1'
             query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
             result = r.query_Kibana(query=query, n_days=1, rows=10000)
-            print('THIS IS THE RESULT SET:', result)
             try:
                 count = result['responses'][0]['hits']['total']
-                self.values[logstream] = count
+                err_key = p + "_piperr"
+                self.values[err_key] = count
             except Exception as err:
                 logger.warn('Error finding errors! %s' % err)
 
@@ -166,7 +169,10 @@ class Gather(object):
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
             errors['passed_tests'] = passed_tests
-        logger.info(errors)
+        try:
+            logger.info(errors)
+        except:
+            pass
         self.values['failed_tests'].extend(failed_tests)
         self.values['passed_tests'].extend(passed_tests)
 
@@ -282,7 +288,7 @@ class Gather(object):
                             bibs.append(r[loc_bib])
                             dirs.append(r[loc_dir])
                 except Exception as err:
-                    logger.warning("Error from gather.fulltext(): %s " % err)
+                    logger.debug("Error from gather.fulltext(): %s " % err)
 
             # create filename based on error message and date
             fname = Filename.get(self.date, FileType.FULLTEXT, adjective=None,
