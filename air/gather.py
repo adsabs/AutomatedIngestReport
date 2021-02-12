@@ -21,6 +21,7 @@ import csv
 
 # from apiclient.discovery import build
 from .utils import Filename, FileType, Date, conf, logger, sort
+from .report import Report
 
 
 class Gather(object):
@@ -42,10 +43,10 @@ class Gather(object):
         self.classic()
         self.solr_bibcodes_list()
         try:
-            self.elasticsearch()
+            self.errorsearch()
+            self.fulltext()
         except Exception as err:
-            pass
-        self.fulltext()
+            logger.info('Problem with error searching: %s' %err)
 
     def canonical(self):
         """create local copy of canonical bibcodes"""
@@ -129,32 +130,23 @@ class Gather(object):
                 logger.error('In gather.solr_bibcodes_list: %s' % s)
 
 
-    def elasticsearch(self):
-        """obtain error counts from elasticsearch """
-        u = conf.get('ELASTICSEARCH_URL', 'https://search-pipeline-d6gsitdlgp2dh25slmlrcwjtse.us-east-1.es.amazonaws.com')
-        es = elasticsearch2.Elasticsearch(u)
-        # first get total errors for last 24 hours
-        s = Search(using=es, index='_all') \
-                   .query('match', **{'@message': 'error'}) \
-                   .filter('range', **{'@timestamp': {'gte': 'now-24h',
-                                                      'lt': 'now'}}).count()
-        errors = OrderedDict()  # using ordered dict to control order in report
-        errors['total'] = s
-        # now get errors individually for each pipeline
-        pipelines = ('fluent-bit-backoffice_prod_master_pipeline_1',
-                     'fluent-bit-backoffice_prod_import_pipeline_1',
-                     'fluent-bit-backoffice_prod_data_pipeline_1',
-                     'fluent-bit-backoffice_prod_fulltext_pipeline_1',
-                     'fluent-bit-backoffice_prod_orcid_pipeline_1',
-                     'fluent-bit-backoffice_prod_citation_capture_pipeline_1')
-        for pipeline in pipelines:
-            s = Search(using=es, index='_all') \
-                              .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
-                              .query('match', **{'@message': 'error'}) \
-                              .filter('match', **{'@log_stream': pipeline}) \
-                              .count()
-            self.values[pipeline] = s
-        self.values['fluent-bit-backoffice_fulltext_pipeline_1'] = '123'
+    # def elasticsearch(self):
+    def errorsearch(self):
+        pipelines = ['master','import','data','fulltext','orcid','citation_capture','augment','myads']
+
+        r = Report(None,None)
+        for p in pipelines:
+            logstream = 'fluent-bit-backoffice_prod_' + p + '_pipeline_1'
+            query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
+            result = r.query_Kibana(query=query, n_days=1, rows=10000)
+            try:
+                count = result['responses'][0]['hits']['total']
+                err_key = p + "_piperr"
+                self.values[err_key] = count
+            except Exception as err:
+                logger.warn('Error finding errors! %s' % err)
+
+        # self.values['fluent-bit-backoffice_fulltext_pipeline_1'] = '123'
         # next, check on specific errors that should have been fixed
         # message must be in double quotes to force exact phrase match
         tests = (('fluent-bit-backoffice_prod_master_pipeline_1', '"too many records to add to db"'),
@@ -162,22 +154,25 @@ class Gather(object):
                  ('fluent-bit-backoffice_prod_nonbib_pipeline_1', '"Unbalanced Parentheses"'))
         passed_tests = []
         failed_tests = []
-        for pipeline, message in tests:
-            count = Search(using=es, index='_all') \
-                              .filter('range', **{'@timestamp': {'gte': 'now-24h', 'lt': 'now'}}) \
-                              .query('query_string', query=message) \
-                              .filter('match', **{'@log_stream': pipeline}) \
-                              .count()
-            if count == 0:
-                passed_tests.append('{}, message {}\n'.format(pipeline, message))
-            else:
-                failed_tests.append('Unexpected error in {}: {} occured {} times'
-                                     .format(pipeline, message, count))
+        for logstream, message in tests:
+            query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"' + message + '\\""'
+            try:
+                result = r.query_Kibana(query=query, n_days=1, rows=10000)
+                count = result['responses'][0]['hits']['total']
+                if count == 0:
+                    passed_tests.append('%s, message %s\n' % (logstream, message))
+                else:
+                    failed_tests.append('Unexpected error in %s: %s occured %s times' % (logstream, message, count))
+            except Exception as err:
+                logger.warn('Error finding errors! %s' % err)
         if len(failed_tests):
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
             errors['passed_tests'] = passed_tests
-        logger.info(errors)
+        try:
+            logger.info(errors)
+        except:
+            pass
         self.values['failed_tests'].extend(failed_tests)
         self.values['passed_tests'].extend(passed_tests)
 
