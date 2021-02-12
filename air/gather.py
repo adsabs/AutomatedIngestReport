@@ -135,7 +135,7 @@ class Gather(object):
         for p in pipelines:
             logstream = 'fluent-bit-backoffice_prod_' + p + '_pipeline_1'
             query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
-            result = r.query_Kibana(query=query, n_days=1, rows=20000)
+            result = r.query_Kibana(query=query, n_days=1, rows=10000)
             print('THIS IS THE RESULT SET:', result)
             try:
                 count = result['responses'][0]['hits']['total']
@@ -154,14 +154,14 @@ class Gather(object):
         for logstream, message in tests:
             query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"' + message + '\\""'
             try:
-                result = r.query_Kibana(query=query, n_days=1, rows=20000)
+                result = r.query_Kibana(query=query, n_days=1, rows=10000)
                 count = result['responses'][0]['hits']['total']
                 if count == 0:
                     passed_tests.append('%s, message %s\n' % (logstream, message))
                 else:
                     failed_tests.append('Unexpected error in %s: %s occured %s times' % (logstream, message, count))
             except Exception as err:
-                logger.warn('Error finding errors! %s' % err
+                logger.warn('Error finding errors! %s' % err)
         if len(failed_tests):
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
