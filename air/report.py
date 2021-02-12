@@ -144,7 +144,7 @@ class Report(object):
     Changes from orcid: $master_orcid_changed
     changes from nonbib: $master_nonbib_changed
 
-    Error counts from elasticsearch:
+    Error counts from kibana:
     backoffice_prod_master_pipeline: $master_piperr
     backoffice_prod_import_pipeline: $import_piperr
     backoffice_prod_data_pipeline: $data_piperr
