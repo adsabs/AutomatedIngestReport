@@ -201,11 +201,6 @@ class Gather(object):
 
     def postgres(self):
         # consider building on ADSPipelineUtils
-        engine = create_engine(conf.get('SQLALCHEMY_URL_NONBIB','postgres://data_pipeline:data_pipeline@localhost:15432/data_pipeline'), echo=False)
-        connection = engine.connect()
-        self.values['nonbib_ned_row_count'] = self.exec_sql(connection, "select count(*) from nonbib.ned;")
-        logger.info('from nonbib database, ned table has {} rows'.format(self.values['nonbib_ned_row_count']))
-        connection.close()
 
         engine = create_engine(conf.get('SQLALCHEMY_URL_MASTER', 'postgres://master_pipeline:master_pipeline@localhost:15432/master_pipeline'), echo=False)
         connection = engine.connect()
