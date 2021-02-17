@@ -14,7 +14,6 @@ CANONICAL_FILE = '/proj/ads_abstracts/config/bibcodes.list.can'
 ELASTICSEARCH_URL = 'https://pipeline-kibana.kube.adslabs.org'
 
 SQLALCHEMY_URL_MASTER = 'postgres://master_pipeline:master_pipeline@%s:15432/master_pipeline' % 'adsnest.cfa.harvard.edu'
-SQLALCHEMY_URL_NONBIB = 'postgres://data_pipeline:data_pipeline@%s:15432/data_pipeline' % 'adsnest.cfa.harvard.edu'
 
 # home of data files (e.g. a copy of today's canonical bibcodes)
 # new files written here, expected files read from here

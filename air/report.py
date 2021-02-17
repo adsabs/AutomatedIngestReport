@@ -144,7 +144,7 @@ class Report(object):
     Changes from orcid: $master_orcid_changed
     changes from nonbib: $master_nonbib_changed
 
-    Error counts from elasticsearch:
+    Error counts from kibana:
     backoffice_prod_master_pipeline: $master_piperr
     backoffice_prod_import_pipeline: $import_piperr
     backoffice_prod_data_pipeline: $data_piperr
@@ -160,8 +160,6 @@ class Report(object):
     'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted.
     'is linked to a zero byte size file' errors since yesterday: $new_ft_is_linked_to_a_zero_byte_size_file created, $deleted_ft_is_linked_to_a_zero_byte_size_file deleted.
     'No such file or directory' errors since yesterday: $new_ft_No_such_file_or_directory created, $deleted_ft_No_such_file_or_directory deleted.
-
-    nonbib ned row (count should not be zero): $nonbib_ned_row_count
 
     Metrics info:
     Number of null records = $metrics_null_count
