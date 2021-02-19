@@ -176,9 +176,9 @@ class Gather(object):
         # self.values['fluent-bit-backoffice_fulltext_pipeline_1'] = '123'
         # next, check on specific errors that should have been fixed
         # message must be in double quotes to force exact phrase match
-        tests = (('fluent-bit-backoffice_prod_master_pipeline_1', '"too many records to add to db"'),
-                 ('fluent-bit-backoffice_prod_fulltext_pipeline_1', '"is linked to a non-existent file"'),
-                 ('fluent-bit-backoffice_prod_nonbib_pipeline_1', '"Unbalanced Parentheses"'))
+        tests = (('fluent-bit-backoffice_prod_master_pipeline_1', 'too many records to add to db'),
+                 ('fluent-bit-backoffice_prod_fulltext_pipeline_1', 'is linked to a non-existent file'),
+                 ('fluent-bit-backoffice_prod_nonbib_pipeline_1', 'Unbalanced Parentheses'))
         passed_tests = []
         failed_tests = []
         for logstream, message in tests:
