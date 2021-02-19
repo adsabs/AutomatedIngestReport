@@ -268,7 +268,7 @@ class Gather(object):
         lists are written to files that are further processed in compute.py"""
 
         # types of errors with corresponding file names
-        errors = conf.get('FULLTEXT_ERRORS','')
+        errors = conf.get('FULLTEXT_ERRORS',dict())
 
         # get todays date
         now = datetime.strftime(datetime.now(), "%Y-%m-%d")
