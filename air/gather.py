@@ -44,9 +44,12 @@ class Gather(object):
         self.solr_bibcodes_list()
         try:
             self.errorsearch()
+        except Exception as err:
+            logger.info('Problem with error searching: %s' % err)
+        try:
             self.fulltext()
         except Exception as err:
-            logger.info('Problem with error searching: %s' %err)
+            logger.info('Problem with fulltext searching: %s' % err)
 
     def canonical(self):
         """create local copy of canonical bibcodes"""
