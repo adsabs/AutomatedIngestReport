@@ -166,10 +166,10 @@ class Gather(object):
 
         r = Report(None,None)
         for p in pipelines:
-            logstream = 'fluent-bit-backoffice_prod_%s_pipeline_1' % p
-            query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
-            result = r.query_Kibana(query=query, n_days=1, rows=10000)
             try:
+                logstream = 'fluent-bit-backoffice_prod_%s_pipeline_1' % p
+                query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
+                result = r.query_Kibana(query=query, n_days=1, rows=10000)
                 count = result['responses'][0]['hits']['total']
                 err_key = p + "_piperr"
                 self.values[err_key] = count
@@ -185,8 +185,8 @@ class Gather(object):
         passed_tests = []
         failed_tests = []
         for logstream, message in tests:
-            query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"%s\\" +@message:\\"%s\\""' % (logstream, message)
             try:
+                query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"%s\\" +@message:\\"%s\\""' % (logstream, message)
                 result = r.query_Kibana(query=query, n_days=1, rows=10000)
                 count = result['responses'][0]['hits']['total']
                 if count == 0:
