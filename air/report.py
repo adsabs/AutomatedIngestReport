@@ -83,9 +83,9 @@ class Report(object):
         start_time = str(int(start_time))
         end_time = str(int(end_time))
 
-        q_rows = '{"index":["cwl-*"]}\n{"size":%.0f,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' % (rows)
+        q_rows = '{"index":["cwl-*"]}\n{"size":%s,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' % rows
 
-        q_query = '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":'+query+'}}, '
+        q_query = '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":' + query + '}}, '
 
         q_range = '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time, end_time)
 

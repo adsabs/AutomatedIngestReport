@@ -7,6 +7,9 @@ LOG_STDOUT = True
 # where to send solr queries, includes core name
 SOLR_URL = 'http://localhost:9983/solr/collection1/'
 
+# elasticsearch/kibana url
+ELASTICSEARCH_URL = 'https://pipeline-kibana.kube.adslabs.org'
+
 # the current list of canonical bibcodes
 CANONICAL_FILE = '/proj/ads_abstracts/config/bibcodes.list.can'
 
