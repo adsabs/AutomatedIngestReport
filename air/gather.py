@@ -56,41 +56,68 @@ class Gather(object):
         shutil.copy(c, air)
         sort(air)
 
+    def return_query(url):
+        try:
+            rQuery = requests.get(url)
+            if rQuery.status_code != 200:
+                print('Nope: %s' % rQuery.status_code)
+                return {}
+            else:
+                return rQuery.json()
+        except Exception as err:
+            return {}
+
     def solr_admin(self):
         """obtain admin oriented data from solr instance """
-        url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
-        # Solr 6 mbeans call
-        query = 'admin/mbeans?stats=true&cat=UPDATEHANDLER&wt=json'
-        rQuery = requests.get(url + query)
-        # Default values if solr.mbeans query fails...
+        url_base = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
+        query = 'admin/mbeans?stats=true&cat=%s&wt=json'
+        # Default values if solr.mbeans queries fail...
         solr_cumulative_adds = -1
         solr_cumulative_errors = -1
         solr_errors = -1
-        if rQuery.status_code != 200:
-            logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
-        else:
-            j = rQuery.json()
-            try:
-                solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_adds']
-                solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['cumulative_errors']
-                solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['errors']
-            except Exception as err_solr6:
-                #redo query for Solr 7 mbeans
-                query = 'admin/mbeans?stats=true&cat=UPDATE&wt=json'
-                rQuery = requests.get(url + query)
-                if rQuery.status_code != 200:
-                    logger.error('failed to obtain stats on update handler, status code = %s', rQuery.status_code)
-                else:
-                    j = rQuery.json()
-                    try:
-                        solr_cumulative_adds = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.cumulativeAdds.count']
-                        solr_cumulative_errors = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.cumulativeErrors.count']
-                        solr_errors = j['solr-mbeans'][1]['updateHandler']['stats']['UPDATE.updateHandler.errors']
-                    except Exception as error:
-                        logger.error('Solr mbeans stats are not in Solr6 or 7 format: %s' % error)
-        self.values['solr_cumulative_adds'] = solr_cumulative_adds
-        self.values['solr_cumulative_errors'] = solr_cumulative_errors
-        self.values['solr_errors'] = solr_errors
+        solr_deleted = -1
+        solr_bibcodes = -1
+        solr_indexsize = -1
+        solr_indexgen = -1
+
+        url_1 = (url_base + query) % 'REPLICATION'
+        url_2 = (url_base + query) % 'CORE'
+        url_3 = (url_base + query) % 'UPDATE'
+
+        try:
+            j = return_query(url_1)
+            solr_val = j['solr-mbeans'][1]['/replication']['stats']
+            solr_indexsize = solr_val['REPLICATION./replication.indexSize']
+            solr_indexgen = solr_val['REPLICATION./replication.generation']
+        except Exception as err:
+            logger.warn('Error getting REPLICATION data: %s' % err)
+
+        try:
+            j = return_query(url_2)
+            solr_val = j['solr-mbeans'][1]['searcher']['stats']
+            solr_deleted = solr_val['SEARCHER.searcher.deletedDocs']
+            solr_bibcodes = solr_val['SEARCHER.searcher.numDocs']
+        except Exception as err:
+            logger.warn('Error getting CORE data: %s' % err)
+
+        try:
+            j = return_query(url_3)
+            solr_val = j['solr-mbeans'][1]['updateHandler']['stats']
+            solr_cumulative_adds = solr_val['UPDATE.updateHandler.cumulativeAdds.count']
+            solr_cumulative_errors = solr_val['UPDATE.updateHandler.cumulativeErrors.count']
+            solr_errors = solr_val['UPDATE.updateHandler.errors']
+        except Exception as err:
+            logger.warn('Error getting UPDATE data: %s' % err)
+
+
+
+        self.values.update({'solr_indexsize': solr_indexsize,
+                            'solr_indexgen': solr_indexgen,
+                            'solr_deleted': solr_deleted,
+                            'solr_bibcodes': solr_bibcodes,
+                            'solr_cumulative_adds': solr_cumulative_adds,
+                            'solr_cumulative_errors': solr_cumulative_errors,
+                            'solr_errors': solr_errors})
 
 
     def solr_bibcodes_list(self):
@@ -188,14 +215,14 @@ class Gather(object):
         resp = x.communicate()[0]
         if x.returncode == 1:
             # no errors found in log files
-            msg = 'passed arxiv check: file {}'.format(f)
+            msg = 'passed arxiv check: file %s' % f
             logger.info(msg)
             self.values['passed_tests'].extend(msg)
         else:
             # return code = 0 if grep matched
             # return code = 2 if grep encounted an error
             # msg = 'failed arxiv check: file {}, error {}'.format(f, resp)
-            msg = 'failed arxiv check: file {}, error = \n{}'.format(f, resp)
+            msg = 'failed arxiv check: file %s, error = \n%s' % (f, resp)
             logger.info(msg)
             self.values['failed_tests'].extend(msg)
 
@@ -223,7 +250,7 @@ class Gather(object):
                                                         "select count(*) from records where nonbib_data_updated >= NOW() - '1 day'::INTERVAL;")
 
         connection.close()
-        logger.info('from metrics database, null count = {}, 1 day updated count = {}'.format(self.values['metrics_null_count'], self.values['metrics_updated_count']))
+        logger.info('from metrics database, null count = %s, 1 day updated count = %s' % (self.values['metrics_null_count'], self.values['metrics_updated_count']))
 
     def exec_sql(self, connection, query):
         result = connection.execute(query)
