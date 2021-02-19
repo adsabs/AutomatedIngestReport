@@ -132,6 +132,12 @@ class Report(object):
 
     Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.
 
+    Solr on adsnest has $solr_bibcodes bibcodes,
+    and $solr_deleted deletions.
+
+    Solr index generation: $solr_indexgen
+    Solr index size: $solr_indexsize
+
     Solr has $solr_cumulative_adds cumulative adds
     and $solr_errors errors
     and $solr_cumulative_errors cumulative_errors.
