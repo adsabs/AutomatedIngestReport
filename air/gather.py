@@ -195,6 +195,7 @@ class Gather(object):
                     failed_tests.append('Unexpected error in %s: %s occured %s times' % (logstream, message, count))
             except Exception as err:
                 logger.warn('Error finding errors! %s' % err)
+        errors = {}
         if len(failed_tests):
             errors['failed_tests'] = failed_tests
         if len(passed_tests):
