@@ -85,7 +85,7 @@ class Gather(object):
         url_3 = (url_base + query) % 'UPDATE'
 
         try:
-            j = return_query(url_1)
+            j = self.return_query(url_1)
             solr_val = j['solr-mbeans'][1]['/replication']['stats']
             solr_indexsize = solr_val['REPLICATION./replication.indexSize']
             solr_indexgen = solr_val['REPLICATION./replication.generation']
@@ -93,7 +93,7 @@ class Gather(object):
             logger.warn('Error getting REPLICATION data: %s' % err)
 
         try:
-            j = return_query(url_2)
+            j = self.return_query(url_2)
             solr_val = j['solr-mbeans'][1]['searcher']['stats']
             solr_deleted = solr_val['SEARCHER.searcher.deletedDocs']
             solr_bibcodes = solr_val['SEARCHER.searcher.numDocs']
@@ -101,7 +101,7 @@ class Gather(object):
             logger.warn('Error getting CORE data: %s' % err)
 
         try:
-            j = return_query(url_3)
+            j = self.return_query(url_3)
             solr_val = j['solr-mbeans'][1]['updateHandler']['stats']
             solr_cumulative_adds = solr_val['UPDATE.updateHandler.cumulativeAdds.count']
             solr_cumulative_errors = solr_val['UPDATE.updateHandler.cumulativeErrors.count']
