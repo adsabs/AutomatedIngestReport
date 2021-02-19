@@ -56,7 +56,7 @@ class Gather(object):
         shutil.copy(c, air)
         sort(air)
 
-    def return_query(url):
+    def return_query(self, url):
         try:
             rQuery = requests.get(url)
             if rQuery.status_code != 200:
