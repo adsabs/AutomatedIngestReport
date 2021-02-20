@@ -264,8 +264,7 @@ class Gather(object):
         for logstream, message in tests:
             try:
                 query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"%s\\" +@message:\\"%s\\""' % (logstream, message)
-                result = r.kibana_counter(query=query, n_days=1, rows=10000)
-                count = result['responses'][0]['hits']['total']
+                count = self._kibana_counter(query=query, n_days=1, rows=10000)
                 if count == 0:
                     passed_tests.append('%s, message %s\n' % (logstream, message))
                 else:
