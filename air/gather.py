@@ -69,7 +69,7 @@ class Gather(object):
             if method.lower() == 'get':
                 rQuery = requests.get(url)
             elif method.lower() == 'post':
-                rQuery = requests.post(url, data=data, header=header, verify=False)
+                rQuery = requests.post(url, data=data, headers=header, verify=False)
             if rQuery.status_code != 200:
                 logger.warn('Return code error: %s' % rQuery.status_code)
                 return {}
@@ -119,7 +119,7 @@ class Gather(object):
                   'content-type': 'application/x-ndjson',
                   'kbn-version': '5.5.2'}
         url = 'https://pipeline-kibana.kube.adslabs.org/_plugin/kibana/elasticsearch/_msearch'
-        result = self._return_query(url, method='post', data=data, header=header, verify=False)
+        result = self._return_query(url, method='post', data=data, headers=header, verify=False)
         return result
 
     def _query_solr(self):
