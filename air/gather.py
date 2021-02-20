@@ -243,13 +243,11 @@ class Gather(object):
     def errorsearch(self):
         pipelines = ['master','import','data','fulltext','orcid','citation_capture','augment','myads']
 
-        r = Report(None,None)
         for p in pipelines:
             try:
                 logstream = 'fluent-bit-backoffice_prod_%s_pipeline_1' % p
                 query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
-                result = r._kibana_counter(query=query, n_days=1, rows=10000)
-                count = result['responses'][0]['hits']['total']
+                count = self._kibana_counter(query=query, n_days=1, rows=10000)
                 err_key = p + "_piperr"
                 self.values[err_key] = count
             except Exception as err:
