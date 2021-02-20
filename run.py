@@ -7,9 +7,6 @@ from air.report import Report
 
 def main():
     parser = argparse.ArgumentParser(description='Process user input.')
-    parser.add_argument('-k', '--kibana', default=False, dest='kibana',
-                        action='store_true',
-                        help='request log data from kibana')
     parser.add_argument('-g', '--gather', default=False, dest='gather',
                         action='store_true',
                         help='gather solr and canonical data files')
@@ -19,14 +16,6 @@ def main():
     args = parser.parse_args()
 
     g = c = None
-    # get Kibana output
-    if args.kibana:
-        # query for the number of myADS emails sent
-        try:
-            k = Report(g, c)
-            k.kibana_counter()
-        except Exception as err:
-            print('Error in Report.kibana_counter(): %s' % err)
 
     if args.gather:
         g = Gather()
