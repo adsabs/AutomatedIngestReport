@@ -31,6 +31,8 @@ class Report(object):
         pass
 
     _text_template = '''
+Number of myADS emails sent today: $myads_email_sent
+
 Canonical bibcodes since yesterday: $new_canonical created, $deleted_canonical deleted.
 
 Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.
@@ -56,6 +58,7 @@ Metrics info:
 Number of null records = $metrics_null_count
 Number of updates since yesterday = $metrics_updated_count
 
+Master/resolver Errors: $resolver_err_count
 
 Solr index generation: $solr_indexgen
 Solr index size: $solr_indexsize

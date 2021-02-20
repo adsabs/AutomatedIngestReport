@@ -40,7 +40,7 @@ class Gather(object):
         self.values['failed_tests'] = []
 
     def all(self):
-        self._kibana_counter()
+        self.get_kibana()
         self._query_solr()
         self.canonical()
         self.postgres()
