@@ -119,7 +119,7 @@ class Gather(object):
                   'content-type': 'application/x-ndjson',
                   'kbn-version': '5.5.2'}
         url = 'https://pipeline-kibana.kube.adslabs.org/_plugin/kibana/elasticsearch/_msearch'
-        result = self._return_query(url, method='post', data=data, headers=header, verify=False)
+        result = self._return_query(url, method='post', data=data, header=header, verify=False)
         return result
 
     def _query_solr(self):
