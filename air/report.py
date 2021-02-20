@@ -31,7 +31,7 @@ class Report(object):
         pass
 
     _text_template = '''
-Number of myADS emails sent today: $myads_email_sent
+Number of myADS emails sent today: $myads_email_count
 
 Canonical bibcodes since yesterday: $new_canonical created, $deleted_canonical deleted.
 

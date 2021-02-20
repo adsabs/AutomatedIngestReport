@@ -182,7 +182,7 @@ class Gather(object):
                                         rows=5)
             count = result['responses'][0]['hits']['total']
         except Exception as err:
-            logger.warning('Unable to execute _kibana_counter: %s' % err)
+            logger.warn('Unable to execute _kibana_counter: %s' % err)
         return count
 
     def get_kibana(self):
@@ -248,7 +248,7 @@ class Gather(object):
             try:
                 logstream = 'fluent-bit-backoffice_prod_%s_pipeline_1' % p
                 query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
-                result = r.query_Kibana(query=query, n_days=1, rows=10000)
+                result = r._kibana_counter(query=query, n_days=1, rows=10000)
                 count = result['responses'][0]['hits']['total']
                 err_key = p + "_piperr"
                 self.values[err_key] = count
@@ -266,7 +266,7 @@ class Gather(object):
         for logstream, message in tests:
             try:
                 query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"%s\\" +@message:\\"%s\\""' % (logstream, message)
-                result = r.query_Kibana(query=query, n_days=1, rows=10000)
+                result = r.kibana_counter(query=query, n_days=1, rows=10000)
                 count = result['responses'][0]['hits']['total']
                 if count == 0:
                     passed_tests.append('%s, message %s\n' % (logstream, message))
