@@ -69,7 +69,7 @@ class Gather(object):
             if method.lower() == 'get':
                 rQuery = requests.get(url)
             elif method.lower() == 'post':
-                rQuery = requests.post(url, data=data, headers=header, verify=False)
+                rQuery = requests.post(url, data=data, headers=headers, verify=False)
             if rQuery.status_code != 200:
                 logger.warn('Return code error: %s' % rQuery.status_code)
                 return {}
