@@ -175,7 +175,7 @@ class Gather(object):
                             'solr_errors': solr_errors})
 
 
-    def _kibana_counter(self, query, n_days=0, rows=5):
+    def _kibana_counter(self, query='', n_days=0, rows=5):
         try:
             result = self._query_Kibana(query=query,
                                         n_days=n_days,
@@ -187,16 +187,16 @@ class Gather(object):
 
     def get_kibana(self):
         # count the number of myADS emails sent today
-        mesg = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""'
+        query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""'
         try:
-            self.values['myads_email_count'] = self._kibana_counter(mesg)
+            self.values['myads_email_count'] = self._kibana_counter(query=query)
         except Exception as err:
             self.values['myads_email_count'] = 'Error: %s' % err
 
         # count the number of master/resolver errors
-        mesg = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""'
+        query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""'
         try:
-            self.values['resolver_err_count'] = self._kibana_counter(mesg)
+            self.values['resolver_err_count'] = self._kibana_counter(query=query)
         except Exception as err:
             self.values['resolver_err_count'] = 'Error: %s' % err
 
