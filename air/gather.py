@@ -175,11 +175,11 @@ class Gather(object):
                             'solr_errors': solr_errors})
 
 
-    def _kibana_counter(self, query):
+    def _kibana_counter(self, query, n_days=0, rows=5):
         try:
             result = self._query_Kibana(query=query,
-                                        n_days=0,
-                                        rows=5)
+                                        n_days=n_days,
+                                        rows=rows)
             count = result['responses'][0]['hits']['total']
         except Exception as err:
             logger.warn('Unable to execute _kibana_counter: %s' % err)

@@ -21,7 +21,6 @@ def main():
         g = Gather()
         try:
             g.all()
-            print('gathered list of bibcodes in canonical and bibcodes in solr')
         except Exception as err:
             print('Error in Gather.all(): %s' % err)
 
@@ -37,7 +36,6 @@ def main():
             print('Error in Compute.solr(): %s' % err)
         try:
             c.fulltext()
-            print("computed canonical and bibcodes")
         except Exception as err:
             print('Error in Compute.fulltext(): %s' % err)
 
