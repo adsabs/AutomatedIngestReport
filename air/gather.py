@@ -1,14 +1,13 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
-
 from builtins import str
 from builtins import zip
 from builtins import object
+import urllib3
 import requests
 import re
 from time import sleep
-from datetime import datetime
 import shutil
 import elasticsearch2
 from elasticsearch_dsl import Search, Q
@@ -18,6 +17,10 @@ from subprocess import Popen, PIPE, STDOUT
 import shlex
 import glob
 import csv
+from dateutil.tz import tzutc
+import datetime
+import time
+import pytz
 
 # from apiclient.discovery import build
 from .utils import Filename, FileType, Date, conf, logger, sort
@@ -37,7 +40,8 @@ class Gather(object):
         self.values['failed_tests'] = []
 
     def all(self):
-        self.solr_admin()
+        self._kibana_counter()
+        self._query_solr()
         self.canonical()
         self.postgres()
         self.classic()
@@ -59,18 +63,66 @@ class Gather(object):
         shutil.copy(c, air)
         sort(air)
 
-    def return_query(self, url):
+    def _return_query(self, url, method='get', data='', header='', verify=False):
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
-            rQuery = requests.get(url)
+            if method.lower() == 'get':
+                rQuery = requests.get(url)
+            elif method.lower() == 'post':
+                rQuery = requests.post(url, data=data, header=header, verify=False)
             if rQuery.status_code != 200:
-                print('Nope: %s' % rQuery.status_code)
+                logger.warn('Return code error: %s' % rQuery.status_code)
                 return {}
             else:
                 return rQuery.json()
         except Exception as err:
+            logger.warn('Error in return_query: %s' % err)
             return {}
 
-    def solr_admin(self):
+    def _query_Kibana(self, query='"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""',
+                     n_days=1, rows=1):
+        """
+        Function to query Kibana for a given input query and return the response.
+
+        :param query: string query, same as would be entered in the Kibana search input (be sure to escape quotes and wrap
+            query in double quotes - see default query for formatting)
+        :param n_days: number of days backwards to query, starting now (=0 for all time)
+        :param rows: number of results to return. If you just need the total number of hits and not the results
+            themselves, can be small.
+        :return: JSON results
+        """
+
+        # get start and end timestamps (in milliseconds since 1970 epoch)
+        now = datetime.datetime.now(tzutc())
+        epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
+        end_time = (now - epoch).total_seconds() * 1000.
+        if n_days != 0:
+            start_time = (now - datetime.timedelta(days=n_days) - epoch).total_seconds() * 1000.
+        else:
+            midnight = datetime.datetime.combine(now, datetime.time.min).replace(tzinfo=pytz.UTC)
+            start_time = ((midnight - epoch).total_seconds() - (5.*3600.)) * 1000.
+            # start_time = 0.
+        start_time = str(int(start_time))
+        end_time = str(int(end_time))
+
+        q_rows = '{"index":["cwl-*"]}\n{"size":%s,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' % rows
+
+        q_query = '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":' + query + '}}, '
+
+        q_range = '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time, end_time)
+
+        q_doc = '"docvalue_fields":["@timestamp"]}\n\n'
+
+        data = (q_rows + q_query + q_range + q_doc)
+        header = {'origin': 'https://pipeline-kibana.kube.adslabs.org',
+                  'authorization': 'Basic ' + conf.get('KIBANA_TOKEN',''),
+                  'content-type': 'application/x-ndjson',
+                  'kbn-version': '5.5.2'}
+        url = 'https://pipeline-kibana.kube.adslabs.org/_plugin/kibana/elasticsearch/_msearch'
+        result = self._return_query(url, method='post', data=data, headers=header, verify=False)
+        return result
+
+    def _query_solr(self):
         """obtain admin oriented data from solr instance """
         url_base = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
         query = 'admin/mbeans?stats=true&cat=%s&wt=json'
@@ -88,7 +140,7 @@ class Gather(object):
         url_3 = (url_base + query) % 'UPDATE'
 
         try:
-            j = self.return_query(url_1)
+            j = self._return_query(url_1)
             solr_val = j['solr-mbeans'][1]['/replication']['stats']
             solr_indexsize = solr_val['REPLICATION./replication.indexSize']
             solr_indexgen = solr_val['REPLICATION./replication.generation']
@@ -96,7 +148,7 @@ class Gather(object):
             logger.warn('Error getting REPLICATION data: %s' % err)
 
         try:
-            j = self.return_query(url_2)
+            j = self._return_query(url_2)
             solr_val = j['solr-mbeans'][1]['searcher']['stats']
             solr_deleted = solr_val['SEARCHER.searcher.deletedDocs']
             solr_bibcodes = solr_val['SEARCHER.searcher.numDocs']
@@ -104,7 +156,7 @@ class Gather(object):
             logger.warn('Error getting CORE data: %s' % err)
 
         try:
-            j = self.return_query(url_3)
+            j = self._return_query(url_3)
             solr_val = j['solr-mbeans'][1]['updateHandler']['stats']
             solr_cumulative_adds = solr_val['UPDATE.updateHandler.cumulativeAdds.count']
             solr_cumulative_errors = solr_val['UPDATE.updateHandler.cumulativeErrors.count']
@@ -123,6 +175,33 @@ class Gather(object):
                             'solr_errors': solr_errors})
 
 
+    def _kibana_counter(self, query):
+        try:
+            result = self._query_Kibana(query=query,
+                                        n_days=0,
+                                        rows=5)
+            count = result['responses'][0]['hits']['total']
+        except Exception as err:
+            logger.warning('Unable to execute _kibana_counter: %s' % err)
+        return count
+
+    def get_kibana(self):
+        # count the number of myADS emails sent today
+        mesg = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""'
+        try:
+            self.values['myads_email_count'] = self._kibana_counter(mesg)
+        except Exception as err:
+            self.values['myads_email_count'] = 'Error: %s' % err
+
+        # count the number of master/resolver errors
+        mesg = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""'
+        try:
+            self.values['resolver_err_count'] = self._kibana_counter(mesg)
+        except Exception as err:
+            self.values['resolver_err_count'] = 'Error: %s' % err
+
+
+
     def solr_bibcodes_list(self):
         url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
         query_1 = 'select?fl=bibcode&cursorMark='
@@ -135,20 +214,21 @@ class Gather(object):
         try:
             while cursormark_token != last_token:
                 q_url = url + query_1 + cursormark_token + query_2
-                rQuery = requests.get(q_url)
-                if rQuery.status_code != 200:
-                    logger.warn('Can\'t harvest bibcode list from Solr: %s ; %s' % (rQuery.status_code, rQuery.text))
-                else:
-                    last_token = cursormark_token
-                    j = rQuery.json()
+                j = self._return_query(q_url)
+                last_token = cursormark_token
+                try:
                     cursormark_token = j['nextCursorMark']
+                except Exception as err:
+                    logger.error('Malformed result from query: %s' % err)
+                    logger.error('Failed to extract bibcodes: %s' % err)
+                else:
                     resp = j['response']
                     if bibcode_count == 0:
                         bibcode_count = resp['numFound']
                     docs = resp['docs']
                     bibcode_list.extend(x['bibcode'] for x in docs)
         except Exception as err:
-            logger.warn('Failed to extract bibcodes: %s' % err)
+            pass
         else:
             filename = Filename.get(self.date, FileType.SOLR)
             try:
@@ -160,7 +240,6 @@ class Gather(object):
                 logger.error('In gather.solr_bibcodes_list: %s' % s)
 
 
-    # def elasticsearch(self):
     def errorsearch(self):
         pipelines = ['master','import','data','fulltext','orcid','citation_capture','augment','myads']
 
@@ -271,7 +350,7 @@ class Gather(object):
         errors = conf.get('FULLTEXT_ERRORS',dict())
 
         # get todays date
-        now = datetime.strftime(datetime.now(), "%Y-%m-%d")
+        now = datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d")
 
         # loop through types of errors messages
         for err_msg in list(errors.keys()):

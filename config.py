@@ -2,7 +2,7 @@ from __future__ import print_function
 import os
 
 LOGGING_LEVEL = 'INFO'
-LOG_STDOUT = True
+LOG_STDOUT = False
 
 # where to send solr queries, includes core name
 SOLR_URL = 'http://localhost:9983/solr/collection1/'
@@ -22,7 +22,17 @@ SQLALCHEMY_URL_MASTER = 'postgres://master_pipeline:master_pipeline@%s:15432/mas
 # new files written here, expected files read from here
 AIR_DATA_DIRECTORY = '/proj/ads_abstracts/daily_reports/'
 
+# both FULLTEXT_LOGS and KIBANA_TOKEN are placeholders
 FULLTEXT_LOGS = '/proj/ads_articles/fulltext/logs/'
+KIBANA_TOKEN = 'dummy_token'
+
+if os.path.exists('./local_config.py'):
+    from local_config import *
+else:
+    print('Warning: invalid API token!')
+
+KIBANA_QUERIES = {'"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""': '\nNumber of myADS emails: %s\n',
+                  '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""': 'Number of Master/Resolver errors: %s\n\n'}
 
 # in double quotes to force exact phrase match during gather
 
@@ -37,13 +47,3 @@ FULLTEXT_ERRORS = {"extraction failed for bibcode":
                    "No such file or directory":
                    FULLTEXT_LOGS + "ads-fulltext.log*"
                   }
-
-
-KIBANA_TOKEN = 'dummy_token'
-if os.path.exists('./local_config.py'):
-    from local_config import *
-else:
-    print('Warning: invalid API token!')
-
-KIBANA_QUERIES = {'"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""': '\nNumber of myADS emails: %s\n',
-                  '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""': 'Number of Master/Resolver errors: %s\n\n'}
