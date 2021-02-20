@@ -63,7 +63,7 @@ class Gather(object):
         shutil.copy(c, air)
         sort(air)
 
-    def _return_query(self, url, method='get', data='', header='', verify=False):
+    def _return_query(self, url, method='get', data='', headers='', verify=False):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         try:
             if method.lower() == 'get':
