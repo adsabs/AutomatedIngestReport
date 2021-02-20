@@ -3,6 +3,9 @@ import argparse
 from air.gather import Gather
 from air.compute import Compute
 from air.report import Report
+import datetime
+
+
 
 
 def main():
@@ -17,34 +20,38 @@ def main():
 
     g = c = None
 
-    if args.gather:
-        g = Gather()
-        try:
-            g.all()
-        except Exception as err:
-            print('Error in Gather.all(): %s' % err)
+    now = datetime.datetime.now()
+    output_file = now.strftime('%Y%m%d') + 'System'
 
-    if args.compute:
-        c = Compute()
-        try:
-            c.canonical()
-        except Exception as err:
-            print('Error in Compute.canonical(): %s' % err)
-        try:
-            c.solr()
-        except Exception as err:
-            print('Error in Compute.solr(): %s' % err)
-        try:
-            c.fulltext()
-        except Exception as err:
-            print('Error in Compute.fulltext(): %s' % err)
+    with open(output_file,'w') as fout:
 
-    try:
-        r = Report(g, c)
-        print(r._text())
-    except Exception as err:
-        print('Exception in writing report: %s' % err)
-        # print('No db actions requested.')
+        if args.gather:
+            g = Gather()
+            try:
+                g.all()
+            except Exception as err:
+                fout.write('Error in Gather.all(): %s\n' % err)
+
+        if args.compute:
+            c = Compute()
+            try:
+                c.canonical()
+            except Exception as err:
+                fout.write('Error in Compute.canonical(): %s\n' % err)
+            try:
+                c.solr()
+            except Exception as err:
+                fout.write('Error in Compute.solr(): %s\n' % err)
+            try:
+                c.fulltext()
+            except Exception as err:
+                fout.write('Error in Compute.fulltext(): %s\n' % err)
+
+        try:
+            r = Report(g, c)
+            fout.write(r._text())
+        except Exception as err:
+            fout.write('Exception in writing report: %s\n' % err)
 
 if __name__ == '__main__':
     main()
