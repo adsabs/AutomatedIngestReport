@@ -29,7 +29,8 @@ KIBANA_TOKEN = 'dummy_token'
 if os.path.exists('./local_config.py'):
     from local_config import *
 else:
-    print('Warning: invalid API token!')
+    pass
+    # print('Warning: invalid API token!')
 
 KIBANA_QUERIES = {'"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""': '\nNumber of myADS emails: %s\n',
                   '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""': 'Number of Master/Resolver errors: %s\n\n'}

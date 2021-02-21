@@ -64,10 +64,8 @@ Solr index generation: $solr_indexgen
 Solr index size: $solr_indexsize
 
 Solr on adsnest has $solr_bibcodes bibcodes
-Solr has $solr_cumulative_adds cumulative adds,
-         $solr_deleted deletions,
-         $solr_errors errors,
-     and $solr_cumulative_errors cumulative_errors.
+Solr has $solr_cumulative_adds cumulative adds, and $solr_deleted deletions.
+Solr has $solr_errors errors, and $solr_cumulative_errors cumulative_errors.
 
 Cause Of Solr Changes
 Total number of records changed: $master_total_changed
@@ -77,8 +75,3 @@ Changes from fulltext: $master_fulltext_changed
 Changes from orcid: $master_orcid_changed
 Changes from nonbib: $master_nonbib_changed
     '''
-
-    # https://developers.google.com/drive/v3/web/quickstart/python
-    # https://developers.google.com/drive/v3/web/simple-upload
-    # https://developers.google.com/api-client-library/python/apis/script/v1
-    # https://developers.google.com/resources/api-libraries/documentation/drive/v3/python/latest/
