@@ -32,4 +32,6 @@ To gather all the needed data and compute state:
   ```
 
 ## Maintainer
-Steve McDonald
+Matthew Templeton, NASA ADS
+
+Originally written by Steve McDonald, NASA ADS
