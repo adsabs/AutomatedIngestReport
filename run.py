@@ -4,6 +4,8 @@ from air.gather import Gather
 from air.compute import Compute
 from air.report import Report
 import datetime
+import config
+
 
 
 
@@ -20,8 +22,9 @@ def main():
 
     g = c = None
 
+    output_basedir = config.AIR_DATA_DIRECTORY
     now = datetime.datetime.now()
-    output_file = now.strftime('%Y%m%d') + 'System'
+    output_file = output_basedir + '/' + now.strftime('%Y%m%d') + 'System'
 
     with open(output_file,'w') as fout:
 
