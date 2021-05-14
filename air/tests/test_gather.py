@@ -11,7 +11,7 @@ class TestUtils(unittest.TestCase):
 
     def setUp(self):
         unittest.TestCase.setUp(self)
-        conf['AIR_DATA_DIRECTORY'] = 'air/tests/tmp/'
+        conf['AIR_DATA_DIRECTORY'] = 'air/tests/stubdata/'
 
     def tearDown(self):
         unittest.TestCase.tearDown(self)
@@ -37,7 +37,7 @@ class TestUtils(unittest.TestCase):
         with patch('requests.get') as r:
             r.side_effect = [initial, start, not_finished, finished, data]
             g = Gather()
-            success = g.solr_bibcodes()
+            success = g.solr_bibcodes_list()
         # self.assertTrue(success)
         filename = Filename.get(Date.TODAY, FileType.SOLR)
         f = open(filename, 'r')

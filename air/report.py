@@ -31,47 +31,62 @@ class Report(object):
         pass
 
     _text_template = '''
-Number of myADS emails sent today: $myads_email_count
+<html>
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="content-type">
+<style type="text/css">ol{margin:0;padding:0}table td,table th{padding:0}.c9{text-decoration:none;font-family:"Arial";font-style:normal}</style>
+</head>
+<body class="c9">
 
-Canonical bibcodes since yesterday: $new_canonical created, $deleted_canonical deleted.
+<h2>Ingest Report</h2></p>
 
-Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.
+<h3>Status</h3></p>
 
-Error counts from kibana:
-backoffice_prod_master_pipeline: $master_piperr
-backoffice_prod_import_pipeline: $import_piperr
-backoffice_prod_data_pipeline: $data_piperr
-backoffice_prod_fulltext_pipeline: $fulltext_piperr
-backoffice_prod_orcid_pipeline: $orcid_piperr
-backoffice_prod_citation_capture_pipeline: $citation_capture_piperr
-backoffice_prod_augment_pipeline: $augment_piperr
-backoffice_prod_myads_pipeline: $myads_piperr
+<p>Number of myADS emails sent today: $myads_email_count</p>
 
-Fulltext Error Counts:
-'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted.
-'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted.
-'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted.
-'is linked to a zero byte size file' errors since yesterday: $new_ft_is_linked_to_a_zero_byte_size_file created, $deleted_ft_is_linked_to_a_zero_byte_size_file deleted.
-'No such file or directory' errors since yesterday: $new_ft_No_such_file_or_directory created, $deleted_ft_No_such_file_or_directory deleted.
+<p>Canonical bibcodes since yesterday: $new_canonical created, $deleted_canonical deleted.</p>
 
-Metrics info:
-Number of null records = $metrics_null_count
-Number of updates since yesterday = $metrics_updated_count
+<p>Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.</p>
 
-Master/resolver Errors: $resolver_err_count
+<h3>Errors</h3>
+<p>Error counts from kibana:<br>
+backoffice_prod_master_pipeline: $master_piperr <br>
+backoffice_prod_import_pipeline: $import_piperr <br>
+backoffice_prod_data_pipeline: $data_piperr <br>
+backoffice_prod_fulltext_pipeline: $fulltext_piperr <br>
+backoffice_prod_orcid_pipeline: $orcid_piperr <br>
+backoffice_prod_citation_capture_pipeline: $citation_capture_piperr <br>
+backoffice_prod_augment_pipeline: $augment_piperr <br>
+backoffice_prod_myads_pipeline: $myads_piperr <br></p>
 
-Solr index generation: $solr_indexgen
-Solr index size: $solr_indexsize
+<p>Fulltext Error Counts: <br>
+'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted. <br>
+'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted. <br>
+'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted. <br>
+'is linked to a zero byte size file' errors since yesterday: $new_ft_is_linked_to_a_zero_byte_size_file created, $deleted_ft_is_linked_to_a_zero_byte_size_file deleted. <br>
+'No such file or directory' errors since yesterday: $new_ft_No_such_file_or_directory created, $deleted_ft_No_such_file_or_directory deleted. <br></p>
 
-Solr on adsnest has $solr_bibcodes bibcodes
-Solr has $solr_cumulative_adds cumulative adds, and $solr_deleted deletions.
-Solr has $solr_errors errors, and $solr_cumulative_errors cumulative_errors.
+<p>Metrics info: <br>
+Number of null records = $metrics_null_count <br>
+Number of updates since yesterday = $metrics_updated_count <br></p>
 
-Cause Of Solr Changes
-Total number of records changed: $master_total_changed
-Changes sent to solr: $master_solr_changed
-Changes from bib: $master_bib_changed
-Changes from fulltext: $master_fulltext_changed
-Changes from orcid: $master_orcid_changed
-Changes from nonbib: $master_nonbib_changed
+<p>Master/resolver Errors: $resolver_err_count</p>
+
+<h3>Solr Report</h3></p>
+
+<p>Solr index generation: $solr_indexgen <br>
+Solr index size: $solr_indexsize <br></p>
+
+<p>Solr on adsnest has $solr_bibcodes bibcodes <br>
+Solr has $solr_cumulative_adds cumulative adds, and $solr_deleted deletions. <br>
+Solr has $solr_errors errors, and $solr_cumulative_errors cumulative_errors. <br></p>
+
+<p>Cause Of Solr Changes <br>
+Total number of records changed: $master_total_changed <br>
+Changes sent to solr: $master_solr_changed <br>
+Changes from bib: $master_bib_changed <br>
+Changes from fulltext: $master_fulltext_changed <br>
+Changes from orcid: $master_orcid_changed <br>
+Changes from nonbib: $master_nonbib_changed <br>
+</body></html>
     '''
