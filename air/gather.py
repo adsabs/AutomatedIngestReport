@@ -237,7 +237,7 @@ class Gather(object):
                         f.write(b+'\n')
                 sort(filename)
             except Exception as err:
-                logger.error('In gather.solr_bibcodes_list: %s' % s)
+                logger.error('In gather.solr_bibcodes_list: %s' % err)
 
 
     def errorsearch(self):
