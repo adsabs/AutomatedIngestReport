@@ -2,6 +2,7 @@
 from builtins import object
 from datetime import datetime, timedelta
 from os import remove
+import os.path
 import pickle
 from shutil import move
 import subprocess
@@ -110,7 +111,6 @@ def lines_in_file_foo(filename):
     """based on https://gist.github.com/zed/0ac760859e614cd03652#file-gistfile1-py-L41
        works on mac, does not work on unix
     """
-    import os.path
     if os.path.isfile(filename) is False:
         raise ValueError('passed file does not exist')
 
