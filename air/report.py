@@ -15,7 +15,6 @@ class Report(object):
     """
 
     def __init__(self, gather, compute, date=Date.TODAY):
-        # service = build('drive', 'v3', developerKey='')
         self.gather = gather
         self.compute = compute
 
@@ -44,9 +43,9 @@ class Report(object):
 
 <p>Number of myADS emails sent today: $myads_email_count</p>
 
-<p>Canonical bibcodes since yesterday: $new_canonical created, $deleted_canonical deleted.</p>
+<p>Canonical bibcodes since yesterday: <a href="$new_canonical_file">$new_canonical</a> created, <a href="$deleted_canonical_file">$deleted_canonical</a> deleted.</p>
 
-<p>Solr bibcodes since yesterday: $new_solr new, $deleted_solr deleted.  $missing_solr missing.</p>
+<p>Solr bibcodes since yesterday: <a href="$new_solr_file">$new_solr</a> new, <a href="$deleted_solr_file">$deleted_solr</a> deleted.  <a href="$missing_solr_file">$missing_solr</a> missing.</p>
 
 <h3>Errors</h3>
 <p>Error counts from kibana:<br>
@@ -89,4 +88,4 @@ Changes from fulltext: $master_fulltext_changed <br>
 Changes from orcid: $master_orcid_changed <br>
 Changes from nonbib: $master_nonbib_changed <br>
 </body></html>
-    '''
+'''

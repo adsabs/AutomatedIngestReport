@@ -3,10 +3,11 @@ import argparse
 from air.gather import Gather
 from air.compute import Compute
 from air.report import Report
+from air.utils import GoogleUploader
 import datetime
 import config
 
-
+conf = load_config(proj_home='./')
 
 
 
@@ -22,7 +23,7 @@ def main():
 
     g = c = None
 
-    output_basedir = config.AIR_DATA_DIRECTORY
+    output_basedir = conf.get('AIR_DATA_DIRECTORY','./data')
     now = datetime.datetime.now()
     output_file = output_basedir + '/' + now.strftime('%Y%m%d') + 'System'
 
@@ -55,6 +56,11 @@ def main():
             fout.write(r._text())
         except Exception as err:
             fout.write('Exception in writing report: %s\n' % err)
+    try:
+        up = GoogleUploader()
+        out_id = g.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html')
+    except Exception as err:
+        print('Exception uploading report: %s\n' % err)
 
 if __name__ == '__main__':
     main()

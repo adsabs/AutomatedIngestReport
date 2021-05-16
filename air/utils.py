@@ -2,15 +2,54 @@
 from builtins import object
 from datetime import datetime, timedelta
 from os import remove
+import pickle
 from shutil import move
 import subprocess
+from .exceptions import *
 
 from adsputils import setup_logging, load_config
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
 
 conf = load_config(proj_home='./')
 logger = setup_logging('AutomatedIngestReport',
                        level=conf.get('LOGGING_LEVEL', 'INFO'),
                        attach_stdout=conf.get('LOG_STDOUT', False))
+
+class GoogleUploader(object):
+    def __init__(self):
+        # initialize service, or raise an error
+        try:
+            with open(conf.get('TOKENFILE','token.pickle'), 'rb') as token:
+                creds = pickle.load(token)
+        except Exception as err:
+            raise GoogleCredentialsError(err)
+        else:
+            try:
+                self.service = build('drive', 'v3', credentials=creds)
+            except Exception as err:
+                raise GoogleServiceError(err)
+
+    def upload_file(self, infile=None, folderID=None, mtype='text/plain'):
+
+        if os.path.exists(infile):
+            infile_name = infile.split('/')[-1]
+            filemeta = {'name': infile_name,
+                        'mimeType': 'application/vnd.google-apps.document',
+                        'parents': [folderID]}
+            data = MediaFileUpload(infile,
+                                   mimetype=mtype,
+                                   resumable=False)
+            try:
+                upfile = self.service.files().create(body=filemeta,
+                                                     media_body=data,
+                                                     supportsAllDrives=True,
+                                                     fields='id').execute()
+                return upfile.get('id')
+            except Exception as err:
+                raise GoogleUploadError(err)
+        else:
+            raise MissingFileError(err)
 
 
 # enums used to to generate file names
@@ -109,11 +148,3 @@ def sort(filename):
     if r != 0:
         logger.error('in sort, c command returned {}'.format(c, r))
     remove(tmp_filename)
-
-
-def occurances_in_file(s, filename):
-    """return how many times the string s appears in the passed file"""
-    # grep -c doesn't work well ehre
-    c = 'grep {} {} | wc -l'.format(s, filename)
-    r = subprocess.call(c, shell=True)
-    return r
