@@ -8,3 +8,9 @@ importlib_metadata==1.6.0
 ipaddress==1.0.23
 #psycopg2==2.8.3
 psycopg2-binary
+google-api-core==1.19.1
+google-api-python-client==1.11.0
+google-auth==1.30.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.4.4
+googleapis-common-protos==1.52.0
