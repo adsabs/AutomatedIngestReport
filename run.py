@@ -7,8 +7,9 @@ from air.utils import GoogleUploader
 import datetime
 import config
 
-conf = load_config(proj_home='./')
+from adsputils import load_config
 
+conf = load_config(proj_home='./')
 
 
 def main():
