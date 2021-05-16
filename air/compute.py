@@ -1,12 +1,11 @@
 from __future__ import absolute_import
 
-import os
+import os.path
 from builtins import object
 from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf, GoogleUploader
 from adsputils import load_config
 
 conf = load_config(proj_home='./')
-
 
 
 class Compute(object):
@@ -49,6 +48,11 @@ class Compute(object):
 
     def solr(self):
         """compute missing, deleted, new, extra"""
+
+        up = GoogleUploader()
+        url_string = 'https://drive.google.com/file/d/'
+        fold_id = conf.get('DATA_FOLDER',None)
+
         solr_end = Filename.get(self.end, FileType.SOLR)
         canonical_end = Filename.get(self.end, FileType.CANONICAL)
         solr_missing = Filename.get(self.end, FileType.SOLR, FileAdjective.MISSING)
