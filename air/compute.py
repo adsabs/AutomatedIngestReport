@@ -8,6 +8,7 @@ from adsputils import load_config
 conf = load_config(proj_home='./')
 
 
+
 class Compute(object):
     """compute missing bibcodes and other values"""
 
@@ -18,6 +19,7 @@ class Compute(object):
 
     def canonical(self):
         up = GoogleUploader()
+        url_string = 'https://drive.google.com/file/d/'
 
         """compute new, deleted"""
         canonical_start = Filename.get(self.start, FileType.CANONICAL)
@@ -25,12 +27,12 @@ class Compute(object):
         canonical_new = Filename.get(self.end, FileType.CANONICAL, FileAdjective.NEW)
         self.values['new_canonical'] = comm(canonical_end, canonical_start, canonical_new)
         if os.path.exists(canonical_new):
-            self.values['new_canonical_file'] = up.upload_file(infile=canonical_new, folderID=conf.get('DATA_FOLDER',None))
+            self.values['new_canonical_file'] = url_string + up.upload_file(infile=canonical_new, folderID=conf.get('DATA_FOLDER',None))
 
         canonical_deleted = Filename.get(self.end, FileType.CANONICAL, FileAdjective.DELETED)
         self.values['deleted_canonical'] = comm(canonical_start, canonical_end, canonical_deleted)
         if os.path.exists(canonical_deleted):
-            self.values['deleted_canonical_file'] = up.upload_file(infile=canonical_deleted, folderID=conf.get('DATA_FOLDER',None))
+            self.values['deleted_canonical_file'] = url_string + up.upload_file(infile=canonical_deleted, folderID=conf.get('DATA_FOLDER',None))
 
         self.values['canonical'] = lines_in_file(canonical_end)
 
@@ -41,18 +43,18 @@ class Compute(object):
         solr_missing = Filename.get(self.end, FileType.SOLR, FileAdjective.MISSING)
         self.values['missing_solr'] = comm(canonical_end, solr_end, solr_missing)
         if os.path.exists(solr_missing):
-            self.values['missing_solr_file'] = up.upload_file(infile=solr_missing, folderID=conf.get('DATA_FOLDER',None))
+            self.values['missing_solr_file'] = url_string + up.upload_file(infile=solr_missing, folderID=conf.get('DATA_FOLDER',None))
 
         solr_start = Filename.get(self.start, FileType.SOLR)
         solr_new = Filename.get(self.end, FileType.SOLR, FileAdjective.NEW)
         self.values['new_solr'] = comm(solr_end, solr_start, solr_new)
         if os.path.exists(solr_new):
-            self.values['new_solr_file'] = up.upload_file(infile=solr_new, folderID=conf.get('DATA_FOLDER',None))
+            self.values['new_solr_file'] = url_string + up.upload_file(infile=solr_new, folderID=conf.get('DATA_FOLDER',None))
 
         solr_deleted = Filename.get(self.end, FileType.SOLR, FileAdjective.DELETED)
         self.values['deleted_solr'] = comm(solr_start, solr_end, solr_deleted)
         if os.path.exists(solr_deleted):
-            self.values['deleted_solr_file'] = up.upload_file(infile=solr_deleted, folderID=conf.get('DATA_FOLDER',None))
+            self.values['deleted_solr_file'] = url_string + up.upload_file(infile=solr_deleted, folderID=conf.get('DATA_FOLDER',None))
 
         solr_extra = Filename.get(self.end, FileType.SOLR, FileAdjective.EXTRA)
         self.values['extra_solr'] = comm(solr_end, canonical_end, solr_extra)
