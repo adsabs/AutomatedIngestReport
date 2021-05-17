@@ -285,8 +285,8 @@ class Gather(object):
 
     def classic(self):
         """are there errors from the classic pipeline"""
-        files = ('/proj/ads/abstracts/sources/ArXiv/log/update.log',
-                 '/proj/ads/abstracts/sources/ArXiv/log/usage.log')
+        files = ('/proj/ads_abstracts/sources/ArXiv/log/update.log',
+                 '/proj/ads_abstracts/sources/ArXiv/log/usage.log')
         for f in files:
             self.classic_file_check(f)
 
