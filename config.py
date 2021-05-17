@@ -14,7 +14,7 @@ ELASTICSEARCH_URL = 'https://pipeline-kibana.kube.adslabs.org'
 CANONICAL_FILE = '/proj/ads_abstracts/config/bibcodes.list.can'
 
 # the count of canonical citations
-CANONICAL_CITATION_COUNT = '/proj/ads/abstracts/config/links/citation/COUNT'
+CANONICAL_CITATION_COUNT = '/proj/ads_abstracts/config/links/citation/COUNT'
 
 SQLALCHEMY_URL_MASTER = 'postgres://master_pipeline:master_pipeline@%s:15432/master_pipeline' % 'adsnest.cfa.harvard.edu'
 
