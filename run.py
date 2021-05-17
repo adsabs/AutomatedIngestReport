@@ -7,8 +7,9 @@ from air.utils import GoogleUploader
 import datetime
 import config
 
-conf = load_config(proj_home='./')
+from adsputils import load_config
 
+conf = load_config(proj_home='./')
 
 
 def main():
@@ -58,7 +59,7 @@ def main():
             fout.write('Exception in writing report: %s\n' % err)
     try:
         up = GoogleUploader()
-        out_id = g.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html')
+        out_id = up.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html')
     except Exception as err:
         print('Exception uploading report: %s\n' % err)
 
