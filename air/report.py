@@ -31,23 +31,31 @@ class Report(object):
 
     _text_template = '''
 <html>
-<head>
-<meta content="text/html; charset=UTF-8" http-equiv="content-type">
-<style type="text/css">ol{margin:0;padding:0}table td,table th{padding:0}.c9{text-decoration:none;font-family:"Arial";font-style:normal}</style>
-</head>
-<body class="c9">
+<body>
+<p><h1>Ingest Report</h1></p>
 
-<h2>Ingest Report</h2></p>
+<p></p>
 
-<h3>Status</h3></p>
+<p><h2>Status</h2></p>
 
 <p>Number of myADS emails sent today: $myads_email_count</p>
 
+<p></p>
+
 <p>Canonical bibcodes since yesterday: <a href="$new_canonical_file">$new_canonical</a> created, <a href="$deleted_canonical_file">$deleted_canonical</a> deleted.</p>
+
+<p></p>
 
 <p>Solr bibcodes since yesterday: <a href="$new_solr_file">$new_solr</a> new, <a href="$deleted_solr_file">$deleted_solr</a> deleted.  <a href="$missing_solr_file">$missing_solr</a> missing.</p>
 
-<h3>Errors</h3>
+<p>Number of canonical bibcodes: $canonical, $canonical_delta</p>
+<p></p>
+<p>Number of solr bibcodes: $solr, $solr_delta</p>
+
+<p></p>
+
+<p>Errors</p>
+<p></p>
 <p>Error counts from kibana:<br>
 backoffice_prod_master_pipeline: $master_piperr <br>
 backoffice_prod_import_pipeline: $import_piperr <br>
@@ -58,12 +66,17 @@ backoffice_prod_citation_capture_pipeline: $citation_capture_piperr <br>
 backoffice_prod_augment_pipeline: $augment_piperr <br>
 backoffice_prod_myads_pipeline: $myads_piperr <br></p>
 
+<p></p>
+
 <p>Fulltext Error Counts: <br>
+<p></p>
 'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted. <br>
 'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted. <br>
 'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted. <br>
 'is linked to a zero byte size file' errors since yesterday: $new_ft_is_linked_to_a_zero_byte_size_file created, $deleted_ft_is_linked_to_a_zero_byte_size_file deleted. <br>
 'No such file or directory' errors since yesterday: $new_ft_No_such_file_or_directory created, $deleted_ft_No_such_file_or_directory deleted. <br></p>
+
+<p></p>
 
 <p>Metrics info: <br>
 Number of null records = $metrics_null_count <br>
@@ -71,14 +84,23 @@ Number of updates since yesterday = $metrics_updated_count <br></p>
 
 <p>Master/resolver Errors: $resolver_err_count</p>
 
-<h3>Solr Report</h3></p>
+<p></p>
+
+<p><h1>Solr Report</h1></p>
+
+<p></p>
 
 <p>Solr index generation: $solr_indexgen <br>
 Solr index size: $solr_indexsize <br></p>
 
+<p></p>
+
+
 <p>Solr on adsnest has $solr_bibcodes bibcodes <br>
 Solr has $solr_cumulative_adds cumulative adds, and $solr_deleted deletions. <br>
 Solr has $solr_errors errors, and $solr_cumulative_errors cumulative_errors. <br></p>
+
+<p></p>
 
 <p>Cause Of Solr Changes <br>
 Total number of records changed: $master_total_changed <br>
@@ -87,5 +109,7 @@ Changes from bib: $master_bib_changed <br>
 Changes from fulltext: $master_fulltext_changed <br>
 Changes from orcid: $master_orcid_changed <br>
 Changes from nonbib: $master_nonbib_changed <br>
-</body></html>
+
+</body>
+</html>
 '''

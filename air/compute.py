@@ -45,6 +45,11 @@ class Compute(object):
                 print("Err in compute: %s" % err)
 
         self.values['canonical'] = lines_in_file(canonical_end)
+        delta = self.values['canonical'] - lines_in_file(canonical_start)
+        if delta < 0:
+            self.values['canonical_delta'] = str(abs(delta)) + ' fewer.'
+        else:
+            self.values['canonical_delta'] = str(abs(delta)) + ' more.'
 
     def solr(self):
         """compute missing, deleted, new, extra"""
@@ -90,6 +95,12 @@ class Compute(object):
         self.values['extra_solr'] = comm(solr_end, canonical_end, solr_extra)
 
         self.values['solr'] = lines_in_file(solr_end)
+        delta = self.values['solr'] - lines_in_file(solr_start)
+        if delta < 0:
+            self.values['solr_delta'] = str(abs(delta)) + ' fewer.'
+        else:
+            self.values['solr_delta'] = str(abs(delta)) + ' more.'
+        
 
     def fulltext(self):
         """Compute the new and deleted bibcodes for each type of error from
