@@ -31,12 +31,12 @@ class GoogleUploader(object):
             except Exception as err:
                 raise GoogleServiceError(err)
 
-    def upload_file(self, infile=None, folderID=None, mtype='text/plain'):
+    def upload_file(self, infile=None, folderID=None, mtype='text/plain', meta_mtype='text/plain'):
 
         if os.path.exists(infile):
             infile_name = infile.split('/')[-1]
             filemeta = {'name': infile_name,
-                        'mimeType': 'application/vnd.google-apps.document',
+                        'mimeType': meta_mtype,
                         'parents': [folderID]}
             data = MediaFileUpload(infile,
                                    mimetype=mtype,

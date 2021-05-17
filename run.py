@@ -59,7 +59,7 @@ def main():
             fout.write('Exception in writing report: %s\n' % err)
     try:
         up = GoogleUploader()
-        out_id = up.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html')
+        out_id = up.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html', meta_mtype='application/vnd.google-apps.document')
     except Exception as err:
         print('Exception uploading report: %s\n' % err)
 
