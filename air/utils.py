@@ -33,6 +33,11 @@ class SlackPublisher(object):
             rQuery = requests.post(data=message, headers=self.header)
         except Exception as err:
             raise SlackPushError(err)
+        else:
+            if rQuery.status_code != 200:
+                raise SlackBadReturnError(rQuery.status_code)
+            else:
+                return
 
 
 class GoogleUploader(object):

@@ -32,9 +32,8 @@ class Report(object):
     _text_template = '''
 <html>
 <body>
-<p><h1>Ingest Report</h1></p>
-
-<p><h2>Status</h2></p>
+<h1>Ingest Report</h1>
+<h2>Status</h2>
 
 <p>Number of myADS emails sent today: $myads_email_count</p>
 
@@ -51,10 +50,8 @@ class Report(object):
 <p>Number of canonical bibcodes: $canonical, $canonical_delta</p>
 <p>Number of backoffice solr bibcodes: $solr, $solr_delta</p>
 
-<p></p>
+<h2>Errors</h2>
 
-<p><h2>Errors</h2></p>
-<p></p>
 <p>Error counts from kibana:<br>
 backoffice_prod_master_pipeline: $master_piperr <br>
 backoffice_prod_import_pipeline: $import_piperr <br>
@@ -65,10 +62,8 @@ backoffice_prod_citation_capture_pipeline: $citation_capture_piperr <br>
 backoffice_prod_augment_pipeline: $augment_piperr <br>
 backoffice_prod_myads_pipeline: $myads_piperr <br></p>
 
-<p></p>
-
-<p><h3>Fulltext Error Counts:</h3></p>
-<p></p>
+<h3>Fulltext Error Counts:</h3>
+<p>
 'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted. <br>
 'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted. <br>
 'is linked to a non-existent file' errors since yesterday: $new_ft_is_linked_to_a_non_existent_file created, $deleted_ft_is_linked_to_a_non_existent_file deleted. <br>
@@ -85,11 +80,7 @@ Number of updates since yesterday = $metrics_updated_count <br></p>
 
 <p>Master/resolver Errors: $resolver_err_count</p>
 
-<p></p>
-
-
-
-<p><h1>Solr Report</h1></p>
+<h1>Solr Report</h1>
 
 <p>Solr index generation: $solr_indexgen <br>
 Solr index size: $solr_indexsize <br></p>
