@@ -99,7 +99,6 @@ Changes sent to solr: $master_solr_changed <br>
 Changes from bib: $master_bib_changed <br>
 Changes from fulltext: $master_fulltext_changed <br>
 Changes from orcid: $master_orcid_changed <br>
-Changes from nonbib: $master_nonbib_changed <br>
-
+Changes from nonbib: $master_nonbib_changed <br></p>
 </body>
 </html>'''
