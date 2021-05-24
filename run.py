@@ -3,7 +3,7 @@ import argparse
 from air.gather import Gather
 from air.compute import Compute
 from air.report import Report
-from air.utils import GoogleUploader
+from air.utils import GoogleUploader, SlackPublisher
 import datetime
 import config
 
@@ -60,6 +60,7 @@ def main():
     try:
         up = GoogleUploader()
         out_id = up.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html', meta_mtype='application/vnd.google-apps.document')
+        slack = SlackPublisher(out_id).push()
     except Exception as err:
         print('Exception uploading report: %s\n' % err)
 
