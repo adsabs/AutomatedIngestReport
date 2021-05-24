@@ -93,6 +93,20 @@ class Compute(object):
 
         solr_extra = Filename.get(self.end, FileType.SOLR, FileAdjective.EXTRA)
         self.values['extra_solr'] = comm(solr_end, canonical_end, solr_extra)
+        if os.path.exists(solr_extra):
+            try:
+                fileid = up.upload_file(infile=solr_extra, folderID=fold_id)
+                extra_solr_file = url_string + fileid
+                self.values['extra_solr_file'] = extra_solr_file
+            except Exception as err:
+                print("Err in compute: %s" % err)
+        with open(solr_extra, 'r') as fe:
+            zndo = 0
+            for l in fe.readlines():
+                if 'zndo' in l:
+                    zndo += 1
+        non_zndo = self.values['extra_solr'] - zndo
+        self.values['extra_solr_zndo'] = str(zndo) + ' Zenodo, ' + str(non_zndo) + ' other'
 
         self.values['solr'] = lines_in_file(solr_end)
         delta = self.values['solr'] - lines_in_file(solr_start)

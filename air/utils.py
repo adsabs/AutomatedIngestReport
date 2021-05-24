@@ -4,6 +4,8 @@ from datetime import datetime, timedelta
 from os import remove
 import os.path
 import pickle
+import urllib3
+import requests
 from shutil import move
 import subprocess
 from .exceptions import *
@@ -16,6 +18,22 @@ conf = load_config(proj_home='./')
 logger = setup_logging('AutomatedIngestReport',
                        level=conf.get('LOGGING_LEVEL', 'INFO'),
                        attach_stdout=conf.get('LOG_STDOUT', False))
+
+class SlackPublisher(object):
+    def __init__(self, mesg):
+        self.url = conf.get('SLACK_URL','https://hooks.slack.com/workflows/0')
+        self.uploadurl = 'https://drive.google.com/file/d/'
+        self.msg = mesg
+        self.header = {'Content-type': 'application/json'}
+
+    def push(self):
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        message = {'report_url': self.uploadurl + self.msg}
+        try:
+            rQuery = requests.post(data=message, headers=self.header)
+        except Exception as err:
+            raise SlackPushError(err)
+
 
 class GoogleUploader(object):
     def __init__(self):

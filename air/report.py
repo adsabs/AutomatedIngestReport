@@ -34,8 +34,6 @@ class Report(object):
 <body>
 <p><h1>Ingest Report</h1></p>
 
-<p></p>
-
 <p><h2>Status</h2></p>
 
 <p>Number of myADS emails sent today: $myads_email_count</p>
@@ -46,15 +44,16 @@ class Report(object):
 
 <p></p>
 
-<p>Solr bibcodes since yesterday: <a href="$new_solr_file">$new_solr</a> new, <a href="$deleted_solr_file">$deleted_solr</a> deleted.  <a href="$missing_solr_file">$missing_solr</a> missing.</p>
+<p>Solr bibcodes since yesterday: <a href="$new_solr_file">$new_solr</a> new, <a href="$deleted_solr_file">$deleted_solr</a> deleted.  <a href="$missing_solr_file">$missing_solr</a> missing, <a href="$extra_solr_file">$extra_solr</a> extra ($extra_solr_zndo)</p>
+
+<p></p>
 
 <p>Number of canonical bibcodes: $canonical, $canonical_delta</p>
-<p></p>
-<p>Number of solr bibcodes: $solr, $solr_delta</p>
+<p>Number of backoffice solr bibcodes: $solr, $solr_delta</p>
 
 <p></p>
 
-<p>Errors</p>
+<p><h2>Errors</h2></p>
 <p></p>
 <p>Error counts from kibana:<br>
 backoffice_prod_master_pipeline: $master_piperr <br>
@@ -68,7 +67,7 @@ backoffice_prod_myads_pipeline: $myads_piperr <br></p>
 
 <p></p>
 
-<p>Fulltext Error Counts: <br>
+<p><h3>Fulltext Error Counts:</h3></p>
 <p></p>
 'extraction failed for bibcode' errors since yesterday: $new_ft_extraction_failed_for_bibcode created, $deleted_ft_extraction_failed_for_bibcode deleted. <br>
 'format not currently supported for extraction' errors since yesterday: $new_ft_format_not_currently_supported_for_extraction created, $deleted_ft_format_not_currently_supported_for_extraction deleted. <br>
@@ -82,19 +81,20 @@ backoffice_prod_myads_pipeline: $myads_piperr <br></p>
 Number of null records = $metrics_null_count <br>
 Number of updates since yesterday = $metrics_updated_count <br></p>
 
+<p></p>
+
 <p>Master/resolver Errors: $resolver_err_count</p>
 
 <p></p>
 
-<p><h1>Solr Report</h1></p>
 
-<p></p>
+
+<p><h1>Solr Report</h1></p>
 
 <p>Solr index generation: $solr_indexgen <br>
 Solr index size: $solr_indexsize <br></p>
 
 <p></p>
-
 
 <p>Solr on adsnest has $solr_bibcodes bibcodes <br>
 Solr has $solr_cumulative_adds cumulative adds, and $solr_deleted deletions. <br>
@@ -111,5 +111,4 @@ Changes from orcid: $master_orcid_changed <br>
 Changes from nonbib: $master_nonbib_changed <br>
 
 </body>
-</html>
-'''
+</html>'''
