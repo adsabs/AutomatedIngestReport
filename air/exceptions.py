@@ -14,5 +14,5 @@ class MissingFileError(Exception):
     pass
 
 
-class SlackPushError(Exception)
+class SlackPushError(Exception):
     pass
