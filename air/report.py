@@ -44,7 +44,7 @@ class Report(object):
 
 <p></p>
 
-<p>Solr bibcodes since yesterday: <a href="$new_solr_file">$new_solr</a> new, <a href="$deleted_solr_file">$deleted_solr</a> deleted.  <a href="$missing_solr_file">$missing_solr</a> missing.</p>
+<p>Solr bibcodes since yesterday: <a href="$new_solr_file">$new_solr</a> new, <a href="$deleted_solr_file">$deleted_solr</a> deleted.  <a href="$missing_solr_file">$missing_solr</a> missing, <a href="$extra_solr_file">$extra_solr</a> extra ($extra_solr_zndo)</p>
 
 <p></p>
 

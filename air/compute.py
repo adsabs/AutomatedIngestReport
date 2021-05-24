@@ -100,6 +100,13 @@ class Compute(object):
                 self.values['extra_solr_file'] = extra_solr_file
             except Exception as err:
                 print("Err in compute: %s" % err)
+        with open(solr_extra, 'r') as fe:
+            zndo = 0
+            for l in fe.readlines():
+                if 'zndo' in l:
+                    zndo += 1
+        non_zndo = self.values['extra_solr'] - zndo
+        self.values['extra_solr_zndo'] = str(zndo) + ' Zenodo, ' + str(non_zndo) + ' other'
 
         self.values['solr'] = lines_in_file(solr_end)
         delta = self.values['solr'] - lines_in_file(solr_start)
