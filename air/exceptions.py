@@ -16,3 +16,7 @@ class MissingFileError(Exception):
 
 class SlackPushError(Exception):
     pass
+
+
+class SlackBadReturnError(Exception):
+    pass

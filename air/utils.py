@@ -21,18 +21,24 @@ logger = setup_logging('AutomatedIngestReport',
 
 class SlackPublisher(object):
     def __init__(self, mesg):
-        self.url = conf.get('SLACK_URL','https://hooks.slack.com/workflows/0')
+        self.url = conf.get('SLACK_URL','https://hooks.slack.com/workflows/fakeurl')
         self.uploadurl = 'https://drive.google.com/file/d/'
         self.msg = mesg
-        self.header = {'Content-type': 'application/json'}
+        self.header = {'content-type': 'application/json'}
 
     def push(self):
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        message = {'report_url': self.uploadurl + self.msg}
+        text = self.uploadurl + self.msg
+        data = "{'reporturl': '%s'}" % text
         try:
-            rQuery = requests.post(data=message, headers=self.header)
+            rQuery = requests.post(self.url, data=data, headers=self.header, verify=False)
         except Exception as err:
             raise SlackPushError(err)
+        else:
+            if rQuery.status_code != 200:
+                logger.warn('Slack notification failed -- status code: %s' % rQuery.status_code)
+            else:
+                logger.info('URL posted to slack: %s' % text)
 
 
 class GoogleUploader(object):

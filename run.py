@@ -60,7 +60,8 @@ def main():
     try:
         up = GoogleUploader()
         out_id = up.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html', meta_mtype='application/vnd.google-apps.document')
-        slack = SlackPublisher(out_id).push()
+        slack = SlackPublisher(out_id)
+        slack.push()
     except Exception as err:
         print('Exception uploading report: %s\n' % err)
 
