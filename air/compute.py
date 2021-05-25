@@ -3,9 +3,6 @@ from __future__ import absolute_import
 import os.path
 from builtins import object
 from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf, GoogleUploader
-from adsputils import load_config
-
-conf = load_config(proj_home='./')
 
 
 class Compute(object):
@@ -19,7 +16,7 @@ class Compute(object):
     def canonical(self):
         up = GoogleUploader()
         url_string = conf.get('GOOGLE_URL_BASE', '')
-        fold_id = conf.get('GOOGLE_DATA_FOLDER',None)
+        fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
 
         """compute new, deleted"""
         canonical_start = Filename.get(self.start, FileType.CANONICAL)
@@ -56,7 +53,7 @@ class Compute(object):
 
         up = GoogleUploader()
         url_string = conf.get('GOOGLE_URL_BASE', '')
-        fold_id = conf.get('GOOGLE_DATA_FOLDER',None)
+        fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
 
         solr_end = Filename.get(self.end, FileType.SOLR)
         canonical_end = Filename.get(self.end, FileType.CANONICAL)
