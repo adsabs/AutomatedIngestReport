@@ -55,8 +55,8 @@ class Compute(object):
         """compute missing, deleted, new, extra"""
 
         up = GoogleUploader()
-        url_string = conf.get('URL_BASE', '')
-        fold_id = conf.get('DATA_FOLDER',None)
+        url_string = conf.get('GOOGLE_URL_BASE', '')
+        fold_id = conf.get('GOOGLE_DATA_FOLDER',None)
 
         solr_end = Filename.get(self.end, FileType.SOLR)
         canonical_end = Filename.get(self.end, FileType.CANONICAL)
