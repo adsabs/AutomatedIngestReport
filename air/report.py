@@ -49,6 +49,13 @@ class Report(object):
 
 <p>Number of canonical bibcodes: $canonical, $canonical_delta</p>
 <p>Number of backoffice solr bibcodes: $solr, $solr_delta</p>
+<p>Number of bumblebee bibcodes: $prod_bibcode_count</p>
+
+<h3>Citation Counts:</h3>
+<p>Number of citations in Classic: $classic_citation_count</p>
+<p>Number of citations in Bumblebee: $prod_citation_count</p>
+<p>Difference in count (Classic - Bumblebee): $delta_citation_count</p>
+
 
 <h2>Errors</h2>
 

@@ -5,7 +5,6 @@ from air.compute import Compute
 from air.report import Report
 from air.utils import GoogleUploader, SlackPublisher
 import datetime
-import config
 
 from adsputils import load_config
 
@@ -24,7 +23,7 @@ def main():
 
     g = c = None
 
-    output_basedir = conf.get('AIR_DATA_DIRECTORY','./data')
+    output_basedir = conf.get('AIR_DATA_DIRECTORY', './')
     now = datetime.datetime.now()
     output_file = output_basedir + '/' + now.strftime('%Y%m%d') + 'System'
 
@@ -59,7 +58,7 @@ def main():
             fout.write('Exception in writing report: %s\n' % err)
     try:
         up = GoogleUploader()
-        out_id = up.upload_file(infile=output_file, folderID=conf.get('SYSTEM_FOLDER',None), mtype='text/html', meta_mtype='application/vnd.google-apps.document')
+        out_id = up.upload_file(infile=output_file, folderID=conf.get('GOOGLE_SYSTEM_FOLDER', ''), mtype='text/html', meta_mtype='application/vnd.google-apps.document')
         slack = SlackPublisher(out_id)
         slack.push()
     except Exception as err:
