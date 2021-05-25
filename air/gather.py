@@ -112,7 +112,7 @@ class Gather(object):
 
         data = (q_rows + q_query + q_range + q_doc)
         header = {'origin': conf.get('KIBANA_ORIG', ''),
-                  'authorization': 'Basic ' + conf.get('KIBANA_TOKEN', ''),
+                  'authorization': 'Basic %s' % conf.get('KIBANA_TOKEN', ''),
                   'content-type': 'application/x-ndjson',
                   'kbn-version': '5.5.2'}
         url = conf.get('KIBANA_URL', '')
@@ -202,7 +202,8 @@ class Gather(object):
             count = result['responses'][0]['hits']['total']
         except Exception as err:
             logger.warn('Unable to execute _kibana_counter: %s' % err)
-        return count
+        else:
+            return count
 
     def get_kibana(self):
         # count the number of myADS emails sent today

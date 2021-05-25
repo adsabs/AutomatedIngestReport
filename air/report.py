@@ -5,7 +5,7 @@ from builtins import str
 from builtins import object
 
 from string import Template
-from .utils import Date, conf, logger
+from .utils import Date 
 
 
 class Report(object):
