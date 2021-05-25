@@ -3,7 +3,6 @@ from __future__ import absolute_import
 import os.path
 from builtins import object
 from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf, GoogleUploader
-from adsputils import load_config
 
 
 class Compute(object):
