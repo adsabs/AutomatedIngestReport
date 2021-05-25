@@ -7,11 +7,7 @@ from builtins import object
 import urllib3
 import requests
 import re
-from time import sleep
 import shutil
-import elasticsearch2
-from elasticsearch_dsl import Search, Q
-from collections import OrderedDict
 from sqlalchemy import create_engine
 from subprocess import Popen, PIPE, STDOUT
 import shlex
@@ -46,6 +42,7 @@ class Gather(object):
         self.postgres()
         self.classic()
         self.solr_bibcodes_list()
+        self.get_prod_stats()
         try:
             self.errorsearch()
         except Exception as err:
@@ -57,7 +54,7 @@ class Gather(object):
 
     def canonical(self):
         """create local copy of canonical bibcodes"""
-        c = conf.get('CANONICAL_FILE', '/proj/ads_abstracts/config/bibcodes.list.can')
+        c = conf.get('CLASSIC_CANONICAL_FILE', '')
         air = Filename.get(self.date, FileType.CANONICAL)
         logger.debug('making local copy of canonical bibcodes file, from %s to %s', c, air)
         shutil.copy(c, air)
@@ -114,17 +111,17 @@ class Gather(object):
         q_doc = '"docvalue_fields":["@timestamp"]}\n\n'
 
         data = (q_rows + q_query + q_range + q_doc)
-        header = {'origin': 'https://pipeline-kibana.kube.adslabs.org',
-                  'authorization': 'Basic ' + conf.get('KIBANA_TOKEN',''),
+        header = {'origin': conf.get('KIBANA_ORIG', ''),
+                  'authorization': 'Basic ' + conf.get('KIBANA_TOKEN', ''),
                   'content-type': 'application/x-ndjson',
                   'kbn-version': '5.5.2'}
-        url = 'https://pipeline-kibana.kube.adslabs.org/_plugin/kibana/elasticsearch/_msearch'
+        url = conf.get('KIBANA_URL', '')
         result = self._return_query(url, method='post', data=data, headers=header, verify=False)
         return result
 
     def _query_solr(self):
         """obtain admin oriented data from solr instance """
-        url_base = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
+        url_base = conf.get('SOLR_URL', '')
         query = 'admin/mbeans?stats=true&cat=%s&wt=json'
         # Default values if solr.mbeans queries fail...
         solr_cumulative_adds = -1
@@ -175,6 +172,28 @@ class Gather(object):
                             'solr_errors': solr_errors})
 
 
+    def get_prod_stats(self):
+        headers = {'Authorization': 'Bearer %s' % conf.get('ADS_API_TOKEN', '')}
+        try:
+            rQuery = requests.get(conf.get('ADS_API_URL', ''), headers=headers)
+            data = rQuery.json()
+            stats = data['stats']['stats_fields']['citation_count']
+        except Exception as err:
+            logger.warn('Error getting stats from prod search API: %s' % err)
+        else:
+            self.values['prod_bibcode_count'] = stats['count']
+            self.values['prod_citation_count'] = stats['sum']
+
+        # compare with classic
+        try:
+            with open(conf.get('CLASSIC_CITATION_COUNT_FILE', ''), 'r') as fc:
+                x = fc.readline().split()
+                self.values['classic_citation_count'] = x[1]
+                self.values['delta_citation_count'] = str(int(x[1]) - int(stats['sum']))
+        except Exception as err:
+            logger.warn('Error getting stats from classic: %s' % err)
+
+
     def _kibana_counter(self, query='', n_days=0, rows=5):
         try:
             result = self._query_Kibana(query=query,
@@ -203,7 +222,7 @@ class Gather(object):
 
 
     def solr_bibcodes_list(self):
-        url = conf.get('SOLR_URL', 'http://localhost:9983/solr/collection1/')
+        url = conf.get('SOLR_URL', '')
         query_1 = 'select?fl=bibcode&cursorMark='
         query_2 = '&q=*%3A*&rows=20000&sort=bibcode%20asc%2Cid%20asc&wt=json'
 
@@ -309,7 +328,7 @@ class Gather(object):
     def postgres(self):
         # consider building on ADSPipelineUtils
 
-        engine = create_engine(conf.get('SQLALCHEMY_URL_MASTER', 'postgres://master_pipeline:master_pipeline@localhost:15432/master_pipeline'), echo=False)
+        engine = create_engine(conf.get('SQLALCHEMY_URL_MASTER', ''), echo=False)
         connection = engine.connect()
         self.values['metrics_updated_count'] = self.exec_sql(connection,
                                                         "select count(*) from records where metrics_updated>now() - interval ' 1 day';")
@@ -344,7 +363,7 @@ class Gather(object):
         lists are written to files that are further processed in compute.py"""
 
         # types of errors with corresponding file names
-        errors = conf.get('FULLTEXT_ERRORS',dict())
+        errors = conf.get('FULLTEXT_ERRORS', dict())
 
         # get todays date
         now = datetime.datetime.strftime(datetime.datetime.now(), "%Y-%m-%d")

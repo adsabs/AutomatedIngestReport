@@ -21,8 +21,8 @@ logger = setup_logging('AutomatedIngestReport',
 
 class SlackPublisher(object):
     def __init__(self, mesg):
-        self.url = conf.get('SLACK_URL','https://hooks.slack.com/workflows/fakeurl')
-        self.uploadurl = 'https://drive.google.com/file/d/'
+        self.url = conf.get('SLACK_URL','')
+        self.uploadurl = conf.get('GOOGLE_URL_BASE', '')
         self.msg = mesg
         self.header = {'content-type': 'application/json'}
 
@@ -45,7 +45,7 @@ class GoogleUploader(object):
     def __init__(self):
         # initialize service, or raise an error
         try:
-            with open(conf.get('TOKENFILE','token.pickle'), 'rb') as token:
+            with open(conf.get('GOOGLE_TOKEN_FILE', ''), 'rb') as token:
                 creds = pickle.load(token)
         except Exception as err:
             raise GoogleCredentialsError(err)
