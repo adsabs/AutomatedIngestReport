@@ -14,7 +14,8 @@ from adsputils import setup_logging, load_config
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
-conf = load_config(proj_home='./')
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
+conf = load_config(proj_home=proj_home)
 logger = setup_logging('AutomatedIngestReport',
                        level=conf.get('LOGGING_LEVEL', 'INFO'),
                        attach_stdout=conf.get('LOG_STDOUT', False))
