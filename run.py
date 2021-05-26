@@ -23,7 +23,7 @@ def main():
 
     g = c = None
 
-    output_basedir = conf.get('AIR_DATA_DIRECTORY', './')
+    output_basedir = conf.get('AIR_DATA_DIRECTORY', './data')
     now = datetime.datetime.now()
     output_file = output_basedir + '/' + now.strftime('%Y%m%d') + 'System'
 

@@ -118,7 +118,7 @@ class Filename(object):
             filename = d + adjective.lower() + _type.capitalize() + '.txt'
         else:
             filename = d + _type.capitalize() + '.txt'
-        data_dir = conf.get('AIR_DATA_DIRECTORY','./')
+        data_dir = conf.get('AIR_DATA_DIRECTORY',os.path.join(proj_home, './data'))
         return data_dir + filename
 
 
