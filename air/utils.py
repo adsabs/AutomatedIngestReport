@@ -3,7 +3,6 @@ from builtins import object
 from datetime import datetime, timedelta
 from os import remove
 import os.path
-import pickle
 import urllib3
 import requests
 from shutil import move
@@ -13,6 +12,8 @@ from .exceptions import *
 from adsputils import setup_logging, load_config
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
+from google.oauth2.credentials import Credentials
+
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 conf = load_config(proj_home=proj_home)
@@ -44,17 +45,27 @@ class SlackPublisher(object):
 
 class GoogleUploader(object):
     def __init__(self):
+        SCOPES = ['https://www.googleapis.com/auth/drive.file']
         # initialize service, or raise an error
         try:
-            with open(conf.get('GOOGLE_TOKEN_FILE', ''), 'rb') as token:
-                creds = pickle.load(token)
+            token_file = conf.get('GOOGLE_TOKEN_FILE', '%s/token.json' % proj_home)
+            creds = Credentials.from_authorized_user_file(token_file, SCOPES)
         except Exception as err:
             raise GoogleCredentialsError(err)
         else:
-            try:
-                self.service = build('drive', 'v3', credentials=creds)
-            except Exception as err:
-                raise GoogleServiceError(err)
+            if not creds or not creds.valid:
+                if creds and creds.expired and creds.refresh_token:
+                    creds.refresh(Request())
+                else:
+                    flow = InstalledAppFlow.from_client_secrets_file(
+                        'credentials.json', SCOPES)
+                    creds = flow.run_local_server(port=0)
+                with open('token.json', 'w') as token:
+                    tokenwrite(creds.to_json())
+        try:
+            self.service = build('drive', 'v3', credentials=creds)
+        except Exception as err:
+            raise GoogleServiceError(err)
 
     def upload_file(self, infile=None, folderID=None, mtype='text/plain', meta_mtype='text/plain'):
 
