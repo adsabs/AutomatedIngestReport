@@ -181,7 +181,7 @@ class Gather(object):
         except Exception as err:
             logger.warn('Error getting stats from prod search API: %s' % err)
         else:
-            self.values['prod_bibcode_count'] = stats['count']
+            self.values['prod_bibcode_count'] = str(int(stats['count']) + int(stats['missing']))
             self.values['prod_citation_count'] = stats['sum']
 
         # compare with classic
