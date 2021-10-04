@@ -55,7 +55,7 @@ class GoogleUploader(object):
         else:
             if not creds or not creds.valid:
                 if creds and creds.expired and creds.refresh_token:
-                    creds.refresh(Request())
+                    creds.refresh(requests)
                 else:
                     flow = InstalledAppFlow.from_client_secrets_file(
                         'credentials.json', SCOPES)
