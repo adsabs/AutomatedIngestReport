@@ -13,6 +13,7 @@ from adsputils import setup_logging, load_config
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
@@ -55,7 +56,7 @@ class GoogleUploader(object):
         else:
             if not creds or not creds.valid:
                 if creds and creds.expired and creds.refresh_token:
-                    creds.refresh(requests)
+                    creds.refresh(Request())
                 else:
                     flow = InstalledAppFlow.from_client_secrets_file(
                         'credentials.json', SCOPES)
