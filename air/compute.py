@@ -14,9 +14,12 @@ class Compute(object):
         self.values = {}
 
     def canonical(self):
-        up = GoogleUploader()
-        url_string = conf.get('GOOGLE_URL_BASE', '')
-        fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
+        try:
+            up = GoogleUploader()
+            url_string = conf.get('GOOGLE_URL_BASE', '')
+            fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
+        except Exception as err:
+            print('Instantiating GoogleUploader failed: %s' % err)
 
         """compute new, deleted"""
         try:
@@ -64,9 +67,12 @@ class Compute(object):
     def solr(self):
         """compute missing, deleted, new, extra"""
 
-        up = GoogleUploader()
-        url_string = conf.get('GOOGLE_URL_BASE', '')
-        fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
+        try:
+            up = GoogleUploader()
+            url_string = conf.get('GOOGLE_URL_BASE', '')
+            fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
+        except Exception as err:
+            print('Instantiating GoogleUploader failed: %s' % err)
 
         try:
             solr_end = Filename.get(self.end, FileType.SOLR)
