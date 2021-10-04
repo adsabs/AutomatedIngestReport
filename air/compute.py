@@ -19,34 +19,47 @@ class Compute(object):
         fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
 
         """compute new, deleted"""
-        canonical_start = Filename.get(self.start, FileType.CANONICAL)
-        canonical_end = Filename.get(self.end, FileType.CANONICAL)
-        canonical_new = Filename.get(self.end, FileType.CANONICAL, FileAdjective.NEW)
-        self.values['new_canonical'] = comm(canonical_end, canonical_start, canonical_new)
+        try:
+            canonical_start = Filename.get(self.start, FileType.CANONICAL)
+            canonical_end = Filename.get(self.end, FileType.CANONICAL)
+            canonical_new = Filename.get(self.end, FileType.CANONICAL, FileAdjective.NEW)
+            self.values['new_canonical'] = comm(canonical_end, canonical_start, canonical_new)
+        except Exception as err:
+            print("Err in compute: %s" % err)
+
         if os.path.exists(canonical_new):
             try:
                 fileid = up.upload_file(infile=canonical_new, folderID=fold_id)
                 new_canonical_file = url_string + fileid
                 self.values['new_canonical_file'] = new_canonical_file
             except Exception as err:
+                self.values['new_canonical_file'] = '(Not Uploaded)'
                 print("Err in compute: %s" % err)
 
-        canonical_deleted = Filename.get(self.end, FileType.CANONICAL, FileAdjective.DELETED)
-        self.values['deleted_canonical'] = comm(canonical_start, canonical_end, canonical_deleted)
+        try:
+            canonical_deleted = Filename.get(self.end, FileType.CANONICAL, FileAdjective.DELETED)
+            self.values['deleted_canonical'] = comm(canonical_start, canonical_end, canonical_deleted)
+        except Exception as err:
+            print("Err in compute: %s" % err)
+
         if os.path.exists(canonical_deleted):
             try:
                 fileid = up.upload_file(infile=canonical_deleted, folderID=fold_id)
                 deleted_canonical_file = url_string + fileid
                 self.values['deleted_canonical_file'] = deleted_canonical_file
             except Exception as err:
+                self.values['deleted_canonical_file'] = '(Not Uploaded)'
                 print("Err in compute: %s" % err)
 
-        self.values['canonical'] = lines_in_file(canonical_end)
-        delta = self.values['canonical'] - lines_in_file(canonical_start)
-        if delta < 0:
-            self.values['canonical_delta'] = str(abs(delta)) + ' fewer.'
-        else:
-            self.values['canonical_delta'] = str(abs(delta)) + ' more.'
+        try:
+            self.values['canonical'] = lines_in_file(canonical_end)
+            delta = self.values['canonical'] - lines_in_file(canonical_start)
+            if delta < 0:
+                self.values['canonical_delta'] = str(abs(delta)) + ' fewer.'
+            else:
+                self.values['canonical_delta'] = str(abs(delta)) + ' more.'
+        except Exception as err:
+            print("Err in compute: %s" % err)
 
     def solr(self):
         """compute missing, deleted, new, extra"""
@@ -55,62 +68,86 @@ class Compute(object):
         url_string = conf.get('GOOGLE_URL_BASE', '')
         fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
 
-        solr_end = Filename.get(self.end, FileType.SOLR)
-        canonical_end = Filename.get(self.end, FileType.CANONICAL)
-        solr_missing = Filename.get(self.end, FileType.SOLR, FileAdjective.MISSING)
-        self.values['missing_solr'] = comm(canonical_end, solr_end, solr_missing)
+        try:
+            solr_end = Filename.get(self.end, FileType.SOLR)
+            canonical_end = Filename.get(self.end, FileType.CANONICAL)
+            solr_missing = Filename.get(self.end, FileType.SOLR, FileAdjective.MISSING)
+            self.values['missing_solr'] = comm(canonical_end, solr_end, solr_missing)
+        except Exception as err:
+            print("Err in compute: %s" % err)
         if os.path.exists(solr_missing):
             try:
                 fileid = up.upload_file(infile=solr_missing, folderID=fold_id)
                 missing_solr_file = url_string + fileid
                 self.values['missing_solr_file'] = missing_solr_file
             except Exception as err:
+                self.values['missing_solr_file'] = '(Not Uploaded)'
                 print("Err in compute: %s" % err)
 
-        solr_start = Filename.get(self.start, FileType.SOLR)
-        solr_new = Filename.get(self.end, FileType.SOLR, FileAdjective.NEW)
-        self.values['new_solr'] = comm(solr_end, solr_start, solr_new)
+        try:
+            solr_start = Filename.get(self.start, FileType.SOLR)
+            solr_new = Filename.get(self.end, FileType.SOLR, FileAdjective.NEW)
+            self.values['new_solr'] = comm(solr_end, solr_start, solr_new)
+        except Exception as err:
+            print("Err in compute: %s" % err)
+
         if os.path.exists(solr_new):
             try:
                 fileid = up.upload_file(infile=solr_new, folderID=fold_id)
                 new_solr_file = url_string + fileid
                 self.values['new_solr_file'] = new_solr_file
             except Exception as err:
+                self.values['new_solr_file'] = '(Not Uploaded)'
                 print("Err in compute: %s" % err)
 
-        solr_deleted = Filename.get(self.end, FileType.SOLR, FileAdjective.DELETED)
-        self.values['deleted_solr'] = comm(solr_start, solr_end, solr_deleted)
+        try:
+            solr_deleted = Filename.get(self.end, FileType.SOLR, FileAdjective.DELETED)
+            self.values['deleted_solr'] = comm(solr_start, solr_end, solr_deleted)
+        except Exception as err:
+            print("Err in compute: %s" % err)
         if os.path.exists(solr_deleted):
             try:
                 fileid = up.upload_file(infile=solr_deleted, folderID=fold_id)
                 deleted_solr_file = url_string + fileid
                 self.values['deleted_solr_file'] = deleted_solr_file
             except Exception as err:
+                self.values['deleted_solr_file'] = '(Not Uploaded)'
                 print("Err in compute: %s" % err)
 
-        solr_extra = Filename.get(self.end, FileType.SOLR, FileAdjective.EXTRA)
-        self.values['extra_solr'] = comm(solr_end, canonical_end, solr_extra)
+        try:
+            solr_extra = Filename.get(self.end, FileType.SOLR, FileAdjective.EXTRA)
+            self.values['extra_solr'] = comm(solr_end, canonical_end, solr_extra)
+        except Exception as err:
+            print("Err in compute: %s" % err)
+
         if os.path.exists(solr_extra):
             try:
                 fileid = up.upload_file(infile=solr_extra, folderID=fold_id)
                 extra_solr_file = url_string + fileid
                 self.values['extra_solr_file'] = extra_solr_file
             except Exception as err:
+                self.values['extra_solr_file'] = '(Not Uploaded)'
                 print("Err in compute: %s" % err)
-        with open(solr_extra, 'r') as fe:
-            zndo = 0
-            for l in fe.readlines():
-                if 'zndo' in l:
-                    zndo += 1
-        non_zndo = self.values['extra_solr'] - zndo
-        self.values['extra_solr_zndo'] = str(zndo) + ' Zenodo, ' + str(non_zndo) + ' other'
+            try:
+                with open(solr_extra, 'r') as fe:
+                    zndo = 0
+                    for l in fe.readlines():
+                        if 'zndo' in l:
+                            zndo += 1
+                non_zndo = self.values['extra_solr'] - zndo
+                self.values['extra_solr_zndo'] = str(zndo) + ' Zenodo, ' + str(non_zndo) + ' other'
+            except Exception as err:
+                print("Err in compute: %s" % err)
 
-        self.values['solr'] = lines_in_file(solr_end)
-        delta = self.values['solr'] - lines_in_file(solr_start)
-        if delta < 0:
-            self.values['solr_delta'] = str(abs(delta)) + ' fewer.'
-        else:
-            self.values['solr_delta'] = str(abs(delta)) + ' more.'
+        try:
+            self.values['solr'] = lines_in_file(solr_end)
+            delta = self.values['solr'] - lines_in_file(solr_start)
+            if delta < 0:
+                self.values['solr_delta'] = str(abs(delta)) + ' fewer.'
+            else:
+                self.values['solr_delta'] = str(abs(delta)) + ' more.'
+        except Exception as err:
+            print("Err in compute: %s" % err)
         
 
     def fulltext(self):

@@ -13,6 +13,7 @@ from adsputils import setup_logging, load_config
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
