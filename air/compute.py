@@ -2,7 +2,8 @@ from __future__ import absolute_import
 
 import os.path
 from builtins import object
-from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf, GoogleUploader
+from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
+from adsgcon import GoogleManager
 
 
 class Compute(object):
@@ -15,11 +16,17 @@ class Compute(object):
 
     def canonical(self):
         try:
-            up = GoogleUploader()
+            folderId = conf.get("GOOGLE_DATA_FOLDER", None)
+            secretsPath = conf.get("GOOGLE_SECRETS_FILENAME", None)
+            scopesList = [conf.get("GOOGLE_API_SCOPE", None)]
+            up = GoogleManager(authtype="service",
+                               folderId=folderId,
+                               secretsFile=secretsPath,
+                               scopes=scopesList)
             url_string = conf.get('GOOGLE_URL_BASE', '')
             fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
         except Exception as err:
-            print('Instantiating GoogleUploader failed: %s' % err)
+            print('Instantiating GoogleManager failed: %s' % err)
 
         """compute new, deleted"""
         try:
@@ -32,7 +39,7 @@ class Compute(object):
 
         if os.path.exists(canonical_new):
             try:
-                fileid = up.upload_file(infile=canonical_new, folderID=fold_id)
+                fileid = up.upload_file(infile=canonical_new)
                 new_canonical_file = url_string + fileid
                 self.values['new_canonical_file'] = new_canonical_file
             except Exception as err:
@@ -68,11 +75,14 @@ class Compute(object):
         """compute missing, deleted, new, extra"""
 
         try:
-            up = GoogleUploader()
+            up = GoogleManager(authtype="service",
+                               folderId=folderId,
+                               secretsFile=secretsPath,
+                               scopes=scopesList)
             url_string = conf.get('GOOGLE_URL_BASE', '')
             fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
         except Exception as err:
-            print('Instantiating GoogleUploader failed: %s' % err)
+            print('Instantiating GoogleManager failed: %s' % err)
 
         try:
             solr_end = Filename.get(self.end, FileType.SOLR)

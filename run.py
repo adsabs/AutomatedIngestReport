@@ -3,7 +3,8 @@ import argparse
 from air.gather import Gather
 from air.compute import Compute
 from air.report import Report
-from air.utils import GoogleUploader, SlackPublisher
+from air.utils import SlackPublisher
+from adsgcon import GoogleManager
 import datetime
 
 from adsputils import load_config
@@ -57,8 +58,14 @@ def main():
         except Exception as err:
             fout.write('Exception in writing report: %s\n' % err)
     try:
-        up = GoogleUploader()
-        out_id = up.upload_file(infile=output_file, folderID=conf.get('GOOGLE_SYSTEM_FOLDER', ''), mtype='text/html', meta_mtype='application/vnd.google-apps.document')
+        folderId = conf.get("GOOGLE_DATA_FOLDER", None)
+        secretsPath = conf.get("GOOGLE_SECRETS_FILENAME", None)
+        scopesList = [conf.get("GOOGLE_API_SCOPE", None)]
+        up = GoogleManager(authtype="service",
+                               folderId=folderId,
+                               secretsFile=secretsPath,
+                               scopes=scopesList)
+        out_id = up.upload_file(infile=output_file, folderID=folderId, mtype='text/html', meta_mtype='application/vnd.google-apps.document')
         slack = SlackPublisher(out_id)
         slack.push()
     except Exception as err:
