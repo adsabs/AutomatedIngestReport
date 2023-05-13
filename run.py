@@ -4,7 +4,7 @@ from air.gather import Gather
 from air.compute import Compute
 from air.report import Report
 from air.utils import SlackPublisher
-from adsgcon import GoogleManager
+from adsgcon.gmanager import GoogleManager
 import datetime
 
 from adsputils import load_config
@@ -52,20 +52,29 @@ def main():
             except Exception as err:
                 fout.write('Error in Compute.fulltext(): %s\n' % err)
 
-        try:
-            r = Report(g, c)
-            fout.write(r._text())
-        except Exception as err:
-            fout.write('Exception in writing report: %s\n' % err)
+        if g and c:
+            try:
+                r = Report(g, c)
+                fout.write(r._text())
+            except Exception as err:
+                fout.write('Exception in writing report: %s\n' % err)
+        else:
+            print("No report generated, skipping write.")
     try:
         folderId = conf.get("GOOGLE_DATA_FOLDER", None)
         secretsPath = conf.get("GOOGLE_SECRETS_FILENAME", None)
         scopesList = [conf.get("GOOGLE_API_SCOPE", None)]
+        print(folderId,secretsPath,scopesList)
         up = GoogleManager(authtype="service",
-                               folderId=folderId,
-                               secretsFile=secretsPath,
-                               scopes=scopesList)
-        out_id = up.upload_file(infile=output_file, folderID=folderId, mtype='text/html', meta_mtype='application/vnd.google-apps.document')
+                           folderId=folderId,
+                           secretsFile=secretsPath,
+                           scopes=scopesList)
+        kwargs = {"infile": output_file,
+                  "folderID": folderId,
+                  "mtype": "text/html",
+                  "meta_mtype": "application/vnd.google-apps.document"}
+        print(kwargs)
+        out_id = up.upload_file(**kwargs)
         slack = SlackPublisher(out_id)
         slack.push()
     except Exception as err:

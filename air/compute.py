@@ -3,7 +3,7 @@ from __future__ import absolute_import
 import os.path
 from builtins import object
 from .utils import Filename, FileType, FileAdjective, Date, comm, lines_in_file, conf
-from adsgcon import GoogleManager
+from adsgcon.gmanager import GoogleManager
 
 
 class Compute(object):
@@ -23,8 +23,7 @@ class Compute(object):
                                folderId=folderId,
                                secretsFile=secretsPath,
                                scopes=scopesList)
-            url_string = conf.get('GOOGLE_URL_BASE', '')
-            fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
+            url_string = conf.get("GOOGLE_URL_BASE", None)
         except Exception as err:
             print('Instantiating GoogleManager failed: %s' % err)
 
@@ -39,7 +38,10 @@ class Compute(object):
 
         if os.path.exists(canonical_new):
             try:
-                fileid = up.upload_file(infile=canonical_new)
+                kwargs = {"infile": canonical_new,
+                          "upload_name": canonical_new,
+                          "folderID": folderId}
+                fileid = up.upload_file(**kwargs)
                 new_canonical_file = url_string + fileid
                 self.values['new_canonical_file'] = new_canonical_file
             except Exception as err:
@@ -54,7 +56,10 @@ class Compute(object):
 
         if os.path.exists(canonical_deleted):
             try:
-                fileid = up.upload_file(infile=canonical_deleted, folderID=fold_id)
+                kwargs = {"infile": canonical_deleted,
+                          "upload_name": canonical_deleted,
+                          "folderID": folderId}
+                fileid = up.upload_file(**kwargs)
                 deleted_canonical_file = url_string + fileid
                 self.values['deleted_canonical_file'] = deleted_canonical_file
             except Exception as err:
@@ -75,12 +80,14 @@ class Compute(object):
         """compute missing, deleted, new, extra"""
 
         try:
+            folderId = conf.get("GOOGLE_DATA_FOLDER", None)
+            secretsPath = conf.get("GOOGLE_SECRETS_FILENAME", None)
+            scopesList = [conf.get("GOOGLE_API_SCOPE", None)]
+            url_string = conf.get("GOOGLE_URL_BASE", None)
             up = GoogleManager(authtype="service",
                                folderId=folderId,
                                secretsFile=secretsPath,
                                scopes=scopesList)
-            url_string = conf.get('GOOGLE_URL_BASE', '')
-            fold_id = conf.get('GOOGLE_DATA_FOLDER', '')
         except Exception as err:
             print('Instantiating GoogleManager failed: %s' % err)
 
@@ -93,7 +100,10 @@ class Compute(object):
             print("Err in compute: %s" % err)
         if os.path.exists(solr_missing):
             try:
-                fileid = up.upload_file(infile=solr_missing, folderID=fold_id)
+                kwargs = {"infile": solr_missing,
+                          "upload_name": solr_missing,
+                          "folderID": folderId}
+                fileid = up.upload_file(**kwargs)
                 missing_solr_file = url_string + fileid
                 self.values['missing_solr_file'] = missing_solr_file
             except Exception as err:
@@ -109,7 +119,10 @@ class Compute(object):
 
         if os.path.exists(solr_new):
             try:
-                fileid = up.upload_file(infile=solr_new, folderID=fold_id)
+                kwargs = {"infile": solr_new,
+                          "upload_name": solr_new,
+                          "folderID": folderId}
+                fileid = up.upload_file(**kwargs)
                 new_solr_file = url_string + fileid
                 self.values['new_solr_file'] = new_solr_file
             except Exception as err:
@@ -123,7 +136,10 @@ class Compute(object):
             print("Err in compute: %s" % err)
         if os.path.exists(solr_deleted):
             try:
-                fileid = up.upload_file(infile=solr_deleted, folderID=fold_id)
+                kwargs = {"infile": solr_deleted,
+                          "upload_name": solr_deleted,
+                          "folderID": folderId}
+                fileid = up.upload_file(**kwargs)
                 deleted_solr_file = url_string + fileid
                 self.values['deleted_solr_file'] = deleted_solr_file
             except Exception as err:
@@ -138,7 +154,10 @@ class Compute(object):
 
         if os.path.exists(solr_extra):
             try:
-                fileid = up.upload_file(infile=solr_extra, folderID=fold_id)
+                kwargs = {"infile": solr_extra,
+                          "upload_name": solr_extra,
+                          "folderID": folderId}
+                fileid = up.upload_file(**kwargs)
                 extra_solr_file = url_string + fileid
                 self.values['extra_solr_file'] = extra_solr_file
             except Exception as err:
@@ -164,7 +183,7 @@ class Compute(object):
                 self.values['solr_delta'] = str(abs(delta)) + ' more.'
         except Exception as err:
             print("Err in compute: %s" % err)
-        
+
 
     def fulltext(self):
         """Compute the new and deleted bibcodes for each type of error from
