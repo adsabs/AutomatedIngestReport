@@ -39,7 +39,6 @@ class Compute(object):
         if os.path.exists(canonical_new):
             try:
                 kwargs = {"infile": canonical_new,
-                          "upload_name": canonical_new,
                           "folderID": folderId}
                 fileid = up.upload_file(**kwargs)
                 new_canonical_file = url_string + fileid
@@ -57,7 +56,6 @@ class Compute(object):
         if os.path.exists(canonical_deleted):
             try:
                 kwargs = {"infile": canonical_deleted,
-                          "upload_name": canonical_deleted,
                           "folderID": folderId}
                 fileid = up.upload_file(**kwargs)
                 deleted_canonical_file = url_string + fileid
@@ -101,7 +99,6 @@ class Compute(object):
         if os.path.exists(solr_missing):
             try:
                 kwargs = {"infile": solr_missing,
-                          "upload_name": solr_missing,
                           "folderID": folderId}
                 fileid = up.upload_file(**kwargs)
                 missing_solr_file = url_string + fileid
@@ -120,7 +117,6 @@ class Compute(object):
         if os.path.exists(solr_new):
             try:
                 kwargs = {"infile": solr_new,
-                          "upload_name": solr_new,
                           "folderID": folderId}
                 fileid = up.upload_file(**kwargs)
                 new_solr_file = url_string + fileid
@@ -137,7 +133,6 @@ class Compute(object):
         if os.path.exists(solr_deleted):
             try:
                 kwargs = {"infile": solr_deleted,
-                          "upload_name": solr_deleted,
                           "folderID": folderId}
                 fileid = up.upload_file(**kwargs)
                 deleted_solr_file = url_string + fileid
@@ -155,7 +150,6 @@ class Compute(object):
         if os.path.exists(solr_extra):
             try:
                 kwargs = {"infile": solr_extra,
-                          "upload_name": solr_extra,
                           "folderID": folderId}
                 fileid = up.upload_file(**kwargs)
                 extra_solr_file = url_string + fileid
