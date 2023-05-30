@@ -84,7 +84,7 @@ def main():
                            secretsFile=secretsPath,
                            scopes=scopesList)
         kwargs = {"infile": output_file,
-                  "folderID": folderId,
+                  "folderId": folderId,
                   "mtype": "text/html",
                   "meta_mtype": "application/vnd.google-apps.document"}
         out_id = up.upload_file(**kwargs)

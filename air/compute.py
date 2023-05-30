@@ -39,7 +39,7 @@ class Compute(object):
         if os.path.exists(canonical_new):
             try:
                 kwargs = {"infile": canonical_new,
-                          "folderID": folderId}
+                          "folderId": folderId}
                 fileid = up.upload_file(**kwargs)
                 new_canonical_file = url_string + fileid
                 self.values['new_canonical_file'] = new_canonical_file
@@ -56,7 +56,7 @@ class Compute(object):
         if os.path.exists(canonical_deleted):
             try:
                 kwargs = {"infile": canonical_deleted,
-                          "folderID": folderId}
+                          "folderId": folderId}
                 fileid = up.upload_file(**kwargs)
                 deleted_canonical_file = url_string + fileid
                 self.values['deleted_canonical_file'] = deleted_canonical_file
@@ -99,7 +99,7 @@ class Compute(object):
         if os.path.exists(solr_missing):
             try:
                 kwargs = {"infile": solr_missing,
-                          "folderID": folderId}
+                          "folderId": folderId}
                 fileid = up.upload_file(**kwargs)
                 missing_solr_file = url_string + fileid
                 self.values['missing_solr_file'] = missing_solr_file
@@ -117,7 +117,7 @@ class Compute(object):
         if os.path.exists(solr_new):
             try:
                 kwargs = {"infile": solr_new,
-                          "folderID": folderId}
+                          "folderId": folderId}
                 fileid = up.upload_file(**kwargs)
                 new_solr_file = url_string + fileid
                 self.values['new_solr_file'] = new_solr_file
@@ -133,7 +133,7 @@ class Compute(object):
         if os.path.exists(solr_deleted):
             try:
                 kwargs = {"infile": solr_deleted,
-                          "folderID": folderId}
+                          "folderId": folderId}
                 fileid = up.upload_file(**kwargs)
                 deleted_solr_file = url_string + fileid
                 self.values['deleted_solr_file'] = deleted_solr_file
@@ -150,7 +150,7 @@ class Compute(object):
         if os.path.exists(solr_extra):
             try:
                 kwargs = {"infile": solr_extra,
-                          "folderID": folderId}
+                          "folderId": folderId}
                 fileid = up.upload_file(**kwargs)
                 extra_solr_file = url_string + fileid
                 self.values['extra_solr_file'] = extra_solr_file
