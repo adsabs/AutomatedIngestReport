@@ -44,55 +44,6 @@ class SlackPublisher(object):
                 logger.info('URL posted to slack: %s' % text)
 
 
-class GoogleUploader(object):
-    def __init__(self):
-        SCOPES = ['https://www.googleapis.com/auth/drive.file']
-        # initialize service, or raise an error
-        try:
-            token_file = conf.get('GOOGLE_TOKEN_FILE', ('%s/token.json' % proj_home))
-            creds = Credentials.from_authorized_user_file(token_file, SCOPES)
-        except Exception as err:
-            logger.error('Initialization error: %s' % err)
-            raise GoogleCredentialsError(err)
-        else:
-            if not creds or not creds.valid:
-                if creds and creds.expired and creds.refresh_token:
-                    creds.refresh(Request())
-                else:
-                    credentials_file = '%s/credentials.json' % proj_home
-                    flow = InstalledAppFlow.from_client_secrets_file(
-                        credentials_file, SCOPES)
-                    creds = flow.run_local_server(port=0)
-                with open(token_file, 'w') as token:
-                    token.write(creds.to_json())
-        try:
-            self.service = build('drive', 'v3', credentials=creds)
-        except Exception as err:
-            logger.error('Initialization error: %s' % err)
-            raise GoogleServiceError(err)
-
-    def upload_file(self, infile=None, folderID=None, mtype='text/plain', meta_mtype='text/plain'):
-
-        if os.path.exists(infile):
-            infile_name = infile.split('/')[-1]
-            filemeta = {'name': infile_name,
-                        'mimeType': meta_mtype,
-                        'parents': [folderID]}
-            data = MediaFileUpload(infile,
-                                   mimetype=mtype,
-                                   resumable=False)
-            try:
-                upfile = self.service.files().create(body=filemeta,
-                                                     media_body=data,
-                                                     supportsAllDrives=True,
-                                                     fields='id').execute()
-                return upfile.get('id')
-            except Exception as err:
-                raise GoogleUploadError(err)
-        else:
-            raise MissingFileError(err)
-
-
 # enums used to to generate file names
 class FileType(object):
     CANONICAL = 'CANONICAL'
