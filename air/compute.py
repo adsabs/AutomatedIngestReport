@@ -18,7 +18,7 @@ class Compute(object):
         try:
             folderId = conf.get("GOOGLE_DATA_FOLDER", None)
             secretsPath = conf.get("GOOGLE_SECRETS_FILENAME", None)
-            scopesList = [conf.get("GOOGLE_API_SCOPE", None)]
+            scopesList = [conf.get("GOOGLE_API_SCOPE", "https://localhost/auth/none")]
             up = GoogleManager(authtype="service",
                                folderId=folderId,
                                secretsFile=secretsPath,
