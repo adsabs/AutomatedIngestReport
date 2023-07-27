@@ -22,7 +22,9 @@ class Compute(object):
             up = GoogleManager(authtype="service",
                                folderId=folderId,
                                secretsFile=secretsPath,
-                               scopes=scopesList)
+                               scopes=scopesList,
+                               resource="drive",
+                               api_version="v3")
             url_string = conf.get("GOOGLE_URL_BASE", None)
         except Exception as err:
             print('Instantiating GoogleManager failed: %s' % err)

@@ -82,7 +82,9 @@ def main():
         up = GoogleManager(authtype="service",
                            folderId=folderId,
                            secretsFile=secretsPath,
-                           scopes=scopesList)
+                           scopes=scopesList,
+                           resource="drive",
+                           api_version="v3")
         kwargs = {"infile": output_file,
                   "folderId": folderId,
                   "mtype": "text/html",
