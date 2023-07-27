@@ -1,4 +1,4 @@
-git+https://github.com/adsabs/ADSGoogleConnector.git@v0.0.3
+git+https://github.com/adsabs/ADSGoogleConnector.git@v0.0.4
 adsputils==1.4.3
 elasticsearch_dsl==6.1.0
 elasticsearch2==2.5.0
