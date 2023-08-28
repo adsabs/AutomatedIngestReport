@@ -1,4 +1,3 @@
-
 from builtins import object
 from datetime import datetime, timedelta
 from os import remove
@@ -14,7 +13,8 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
-
+from dateutil.relativedelta import relativedelta as tsdelta
+from grapi.grapi import Grapi
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 conf = load_config(proj_home=proj_home)
@@ -139,3 +139,85 @@ def sort(filename):
     if r != 0:
         logger.error('in sort, c command returned {}'.format(c, r))
     remove(tmp_filename)
+
+
+def _query_graylog(api, query, start, end, fields):
+    try:
+
+        q_payload = {"query": query,
+                     "from": start,
+                     "to": end,
+                     "offset": 0,
+                     "limit": 1,
+                     "fields": fields,
+                     "sort": "timestamp:asc"}
+
+        request = api.send("get", **q_payload)
+        request.raise_for_status()
+        return request.json()
+    except Exception as err:
+        raise GraylogQueryException("Error querying Graylog: %s" %err)
+
+
+def query_graylog_all():
+
+    graylog_token = conf.get("GRAYLOG_TOKEN", "")
+    graylog_url = conf.get("GRAYLOG_URL", "")
+
+    api = Grapi(url, graylog_token)
+
+    # time range to be searched in Graylog
+    now = datetime.utcnow()
+    before = now - tsdelta(days=1)
+    start = before.isoformat(sep=' ', timespec='milliseconds')
+    end = (now + tsdelta(minutes=1)).isoformat(sep=' ', timespec='milliseconds')
+
+    # global query return values
+    fields = ",".join(["timestamp", "namespace_name", "container_name", "message"])
+
+    # this is where the results will be stored
+    results = {}
+
+    try:
+        # query for myads emails
+        query_myads = 'namespace_name:back-prod AND container_name:myads_pipeline AND message:"Email sent to *"'
+        data = _query_graylog(api, query_myads, start, end, fields)
+        results.update({"myads_email_count": data.get("total_results", 0)})
+
+        # queries for specific errors: master, fulltext, augments
+        # query for master/resolver errors
+        query_resolver_err = 'namespace_name:back-prod AND container_name:master_pipeline AND message:"error sending links"'
+        data = _query_graylog(api, query_resolver_err, start, end, fields)
+        results.update({"resolver_err_count": data.get("total_results", 0)})
+
+        #   master: too many records
+        query_master_too_many_bibcodes = 'namespace_name:back-prod AND container_name:master_pipeline AND message:"too many records to add to db"'
+        data = _query_graylog(api, query_resolver_err, start, end, fields)
+        results.update({"master_too_many_bibs": data.get("total_results", 0)})
+
+        #   fulltext: missing files
+        query_fulltext_non_existent_files = 'namespace_name:back-prod AND container_name:fulltext_pipeline AND message:"is linked to a non-existent file"'
+        data = _query_graylog(api, query_resolver_err, start, end, fields)
+        results.update({"fulltext_nonexistent_file": data.get("total_results", 0)})
+
+        #   augments: unmatched parentheses
+        query_fulltext_non_existent_files = 'namespace_name:back-prod AND container_name:augment_pipeline AND message:"Unbalanced Parentheses"'
+        data = _query_graylog(api, query_resolver_err, start, end, fields)
+        results.update({"augments_unbalanced_parens": data.get("total_results", 0)})
+
+        # check pipelines for any errors
+        pipelines = ['master','import','data','fulltext','orcid','citation_capture','augment','myads']
+        # query for general errors
+        query_pipeline_err = 'namespace_name:back-prod AND container_name:%s_pipeline AND message:"error"'
+
+        for p in pipelines:
+            key = "%s_piperr" % p
+            q = query_pipeline_err % p
+            data = _query_graylog(api, q, start, end, fields)
+            results.update({key: data.get("total_results", 0)})
+
+    except Exception as err:
+        raise GraylogException("Error querying graylog: %s" % err)
+    else:
+        return results
+
