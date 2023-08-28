@@ -20,3 +20,11 @@ class SlackPushError(Exception):
 
 class SlackBadReturnError(Exception):
     pass
+
+
+class GraylogException(Exception):
+    pass
+
+
+class GraylogQueryException(Exception):
+    pass
