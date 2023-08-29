@@ -164,7 +164,7 @@ def query_graylog_all():
     graylog_token = conf.get("GRAYLOG_TOKEN", "")
     graylog_url = conf.get("GRAYLOG_URL", "")
 
-    api = Grapi(url, graylog_token)
+    api = Grapi(graylog_url, graylog_token)
 
     # time range to be searched in Graylog
     now = datetime.utcnow()
