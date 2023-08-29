@@ -19,7 +19,7 @@ import time
 import pytz
 
 # from apiclient.discovery import build
-from .utils import Filename, FileType, Date, conf, logger, sort
+from .utils import Filename, FileType, Date, conf, logger, sort, query_graylog_all
 from .report import Report
 
 
@@ -36,17 +36,13 @@ class Gather(object):
         self.values['failed_tests'] = []
 
     def all(self):
-        self.get_kibana()
+        self.graylog()
         self._query_solr()
         self.canonical()
         self.postgres()
         self.classic()
         self.solr_bibcodes_list()
         self.get_prod_stats()
-        try:
-            self.errorsearch()
-        except Exception as err:
-            logger.info('Problem with error searching: %s' % err)
         try:
             self.fulltext()
         except Exception as err:
@@ -76,48 +72,6 @@ class Gather(object):
             logger.warn('Error in return_query: %s' % err)
             return {}
 
-    def _query_Kibana(self, query='"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""',
-                     n_days=1, rows=1):
-        """
-        Function to query Kibana for a given input query and return the response.
-
-        :param query: string query, same as would be entered in the Kibana search input (be sure to escape quotes and wrap
-            query in double quotes - see default query for formatting)
-        :param n_days: number of days backwards to query, starting now (=0 for all time)
-        :param rows: number of results to return. If you just need the total number of hits and not the results
-            themselves, can be small.
-        :return: JSON results
-        """
-
-        # get start and end timestamps (in milliseconds since 1970 epoch)
-        now = datetime.datetime.now(tzutc())
-        epoch = datetime.datetime.utcfromtimestamp(0).replace(tzinfo=pytz.UTC)
-        end_time = (now - epoch).total_seconds() * 1000.
-        if n_days != 0:
-            start_time = (now - datetime.timedelta(days=n_days) - epoch).total_seconds() * 1000.
-        else:
-            midnight = datetime.datetime.combine(now, datetime.time.min).replace(tzinfo=pytz.UTC)
-            start_time = ((midnight - epoch).total_seconds() - (5.*3600.)) * 1000.
-            # start_time = 0.
-        start_time = str(int(start_time))
-        end_time = str(int(end_time))
-
-        q_rows = '{"index":["cwl-*"]}\n{"size":%s,"sort":[{"@timestamp":{"order":"desc","unmapped_type":"boolean"}}],' % rows
-
-        q_query = '"query":{"bool":{"must":[{"query_string":{"analyze_wildcard":true, "query":' + query + '}}, '
-
-        q_range = '{"range": {"@timestamp": {"gte": %s, "lte": %s,"format": "epoch_millis"}}}], "must_not":[]}}, ' % (start_time, end_time)
-
-        q_doc = '"docvalue_fields":["@timestamp"]}\n\n'
-
-        data = (q_rows + q_query + q_range + q_doc)
-        header = {'origin': conf.get('KIBANA_ORIG', ''),
-                  'authorization': 'Basic %s' % conf.get('KIBANA_TOKEN', ''),
-                  'content-type': 'application/x-ndjson',
-                  'kbn-version': '5.5.2'}
-        url = conf.get('KIBANA_URL', '')
-        result = self._return_query(url, method='post', data=data, headers=header, verify=False)
-        return result
 
     def _query_solr(self):
         """obtain admin oriented data from solr instance """
@@ -171,6 +125,14 @@ class Gather(object):
                             'solr_cumulative_errors': solr_cumulative_errors,
                             'solr_errors': solr_errors})
 
+    def graylog(self):
+
+        try:
+            graylog_result_dict = query_graylog_all()
+        except Exception as err:
+            logger.warn('Error getting log data from Graylog: %s' % err)
+        else:
+            self.values.update(graylog_result_dict)
 
     def get_prod_stats(self):
         headers = {'Authorization': 'Bearer %s' % conf.get('ADS_API_TOKEN', '')}
@@ -194,33 +156,6 @@ class Gather(object):
                 self.values['delta_citation_count'] = str(int(x[1]) - int(stats['sum']))
         except Exception as err:
             logger.warn('Error getting stats from classic: %s' % err)
-
-
-    def _kibana_counter(self, query='', n_days=0, rows=5):
-        try:
-            result = self._query_Kibana(query=query,
-                                        n_days=n_days,
-                                        rows=rows)
-            count = result['responses'][0]['hits']['total']
-        except Exception as err:
-            logger.warn('Unable to execute _kibana_counter: %s' % err)
-        else:
-            return count
-
-    def get_kibana(self):
-        # count the number of myADS emails sent today
-        query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_myads_pipeline_1\\" +@message:\\"Email sent to\\""'
-        try:
-            self.values['myads_email_count'] = self._kibana_counter(query=query)
-        except Exception as err:
-            self.values['myads_email_count'] = 'Error: %s' % err
-
-        # count the number of master/resolver errors
-        query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"fluent-bit-backoffice_prod_master_pipeline_1\\" +@message:\\"error sending links\\""'
-        try:
-            self.values['resolver_err_count'] = self._kibana_counter(query=query)
-        except Exception as err:
-            self.values['resolver_err_count'] = 'Error: %s' % err
 
 
 
@@ -261,49 +196,6 @@ class Gather(object):
             except Exception as err:
                 logger.error('In gather.solr_bibcodes_list: %s' % err)
 
-
-    def errorsearch(self):
-        pipelines = ['master','import','data','fulltext','orcid','citation_capture','augment','myads']
-
-        for p in pipelines:
-            try:
-                logstream = 'fluent-bit-backoffice_prod_%s_pipeline_1' % p
-                query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"' + logstream + '\\" +@message:\\"error\\""'
-                count = self._kibana_counter(query=query, n_days=1, rows=10000)
-                err_key = p + "_piperr"
-                self.values[err_key] = count
-            except Exception as err:
-                logger.warn('Error finding errors! %s' % err)
-
-        # self.values['fluent-bit-backoffice_fulltext_pipeline_1'] = '123'
-        # next, check on specific errors that should have been fixed
-        # message must be in double quotes to force exact phrase match
-        tests = (('fluent-bit-backoffice_prod_master_pipeline_1', 'too many records to add to db'),
-                 ('fluent-bit-backoffice_prod_fulltext_pipeline_1', 'is linked to a non-existent file'),
-                 ('fluent-bit-backoffice_prod_augment_pipeline_1', 'Unbalanced Parentheses'))
-        passed_tests = []
-        failed_tests = []
-        for logstream, message in tests:
-            try:
-                query = '"+@log_group:\\"backoffice-logs\\" +@log_stream:\\"%s\\" +@message:\\"%s\\""' % (logstream, message)
-                count = self._kibana_counter(query=query, n_days=1, rows=10000)
-                if count == 0:
-                    passed_tests.append('%s, message %s\n' % (logstream, message))
-                else:
-                    failed_tests.append('Unexpected error in %s: %s occured %s times' % (logstream, message, count))
-            except Exception as err:
-                logger.warn('Error finding errors! %s' % err)
-        errors = {}
-        if len(failed_tests):
-            errors['failed_tests'] = failed_tests
-        if len(passed_tests):
-            errors['passed_tests'] = passed_tests
-        try:
-            logger.info(errors)
-        except:
-            pass
-        self.values['failed_tests'].extend(failed_tests)
-        self.values['passed_tests'].extend(passed_tests)
 
     def classic(self):
         """are there errors from the classic pipeline"""
